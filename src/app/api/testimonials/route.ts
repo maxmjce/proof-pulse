@@ -4,6 +4,7 @@ import { z } from 'zod';
 
 const createTestimonialSchema = z.object({
   form_id: z.string().uuid().optional(),
+  user_id: z.string().uuid().optional(),
   author_name: z.string().min(1).max(100),
   author_email: z.string().email().optional().or(z.literal('')),
   author_title: z.string().max(100).optional().or(z.literal('')),
@@ -19,12 +20,41 @@ export async function POST(request: NextRequest) {
 
     const supabase = await createClient();
 
+    // If form_id is provided, look up the form to get the owner user_id
+    let userId = validated.user_id;
+    if (validated.form_id && !userId) {
+      const { data: form } = await supabase
+        .from('forms')
+        .select('user_id')
+        .eq('id', validated.form_id)
+        .single();
+      if (form) {
+        userId = form.user_id;
+      }
+    }
+
+    // If still no user_id, try current authenticated user
+    if (!userId) {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        userId = user.id;
+      }
+    }
+
+    if (!userId) {
+      return NextResponse.json({ error: 'Could not determine testimonial owner' }, { status: 400 });
+    }
+
     const { data, error } = await supabase
       .from('testimonials')
       .insert({
-        ...validated,
+        form_id: validated.form_id || null,
+        user_id: userId,
+        author_name: validated.author_name,
         author_email: validated.author_email || null,
         author_title: validated.author_title || null,
+        content: validated.content,
+        rating: validated.rating || null,
         status: 'pending',
         source: 'form',
         tags: [],
