@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { z } from 'zod';
 import { DEFAULT_WIDGET_CONFIG } from '@/lib/constants';
+import { checkWidgetLimit, getUserPlan } from '@/lib/plan-limits';
 
 const createWidgetSchema = z.object({
   name: z.string().min(1).max(100),
@@ -29,6 +30,15 @@ export async function POST(request: NextRequest) {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Check plan limits
+    const plan = await getUserPlan(supabase, user.id);
+    const limitCheck = await checkWidgetLimit(supabase, user.id, plan);
+    if (!limitCheck.allowed) {
+      return NextResponse.json({
+        error: `Widget limit reached (${limitCheck.current}/${limitCheck.limit}). Upgrade your plan for more.`,
+      }, { status: 403 });
     }
 
     const body = await request.json();

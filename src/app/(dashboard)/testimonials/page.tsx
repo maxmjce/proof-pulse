@@ -33,6 +33,50 @@ const statusBadgeVariant = {
   rejected: 'destructive' as const,
 };
 
+function TagInput({ tags, onUpdate }: { tags: string[]; onUpdate: (tags: string[]) => void }) {
+  const [input, setInput] = useState('');
+
+  function handleAdd(e: React.KeyboardEvent) {
+    if (e.key === 'Enter' && input.trim()) {
+      e.preventDefault();
+      const newTag = input.trim().toLowerCase();
+      if (!tags.includes(newTag)) {
+        onUpdate([...tags, newTag]);
+      }
+      setInput('');
+    }
+  }
+
+  function handleRemove(tag: string) {
+    onUpdate(tags.filter((t) => t !== tag));
+  }
+
+  return (
+    <div className="flex flex-wrap items-center gap-1.5 mt-2">
+      {tags.map((tag) => (
+        <span key={tag} className="inline-flex items-center gap-1 bg-indigo-50 text-indigo-700 text-xs px-2 py-0.5 rounded-full">
+          {tag}
+          <button
+            type="button"
+            onClick={() => handleRemove(tag)}
+            className="hover:text-indigo-900"
+          >
+            x
+          </button>
+        </span>
+      ))}
+      <input
+        type="text"
+        value={input}
+        onChange={(e) => setInput(e.target.value)}
+        onKeyDown={handleAdd}
+        placeholder="Add tag..."
+        className="text-xs border-none outline-none bg-transparent w-20 placeholder:text-gray-400"
+      />
+    </div>
+  );
+}
+
 export default function TestimonialsPage() {
   const [tab, setTab] = useState<'testimonials' | 'forms'>('testimonials');
   const [filter, setFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all');
@@ -45,6 +89,7 @@ export default function TestimonialsPage() {
   const [formDescription, setFormDescription] = useState('');
   const [formThankYou, setFormThankYou] = useState('Thank you for your testimonial!');
   const [creating, setCreating] = useState(false);
+  const [formError, setFormError] = useState('');
 
   const fetchTestimonials = useCallback(async () => {
     const res = await fetch('/api/testimonials');
@@ -101,7 +146,21 @@ export default function TestimonialsPage() {
     }
   }
 
+  async function handleUpdateTags(id: string, tags: string[]) {
+    const res = await fetch(`/api/testimonials/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tags }),
+    });
+    if (res.ok) {
+      setTestimonials((prev) =>
+        prev.map((t) => (t.id === id ? { ...t, tags } : t))
+      );
+    }
+  }
+
   async function handleDeleteTestimonial(id: string) {
+    if (!window.confirm('Are you sure you want to delete this testimonial? This cannot be undone.')) return;
     const res = await fetch(`/api/testimonials/${id}`, { method: 'DELETE' });
     if (res.ok) {
       setTestimonials((prev) => prev.filter((t) => t.id !== id));
@@ -111,6 +170,7 @@ export default function TestimonialsPage() {
   async function handleCreateForm(e: React.FormEvent) {
     e.preventDefault();
     setCreating(true);
+    setFormError('');
     const res = await fetch('/api/forms', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -128,11 +188,15 @@ export default function TestimonialsPage() {
       setFormThankYou('Thank you for your testimonial!');
       setShowFormCreator(false);
       fetchForms();
+    } else {
+      const json = await res.json();
+      setFormError(typeof json.error === 'string' ? json.error : 'Failed to create form.');
     }
     setCreating(false);
   }
 
   async function handleDeleteForm(id: string) {
+    if (!window.confirm('Are you sure you want to delete this form? This cannot be undone.')) return;
     const res = await fetch(`/api/forms/${id}`, { method: 'DELETE' });
     if (res.ok) {
       setForms((prev) => prev.filter((f) => f.id !== id));
@@ -259,6 +323,13 @@ export default function TestimonialsPage() {
                   <CardContent>
                     <StarDisplay rating={testimonial.rating} />
                     <p className="mt-2 text-gray-700">{testimonial.content}</p>
+
+                    {/* Tags */}
+                    <TagInput
+                      tags={testimonial.tags || []}
+                      onUpdate={(tags) => handleUpdateTags(testimonial.id, tags)}
+                    />
+
                     <div className="mt-4 flex gap-2">
                       {testimonial.status !== 'approved' && (
                         <Button
@@ -358,6 +429,7 @@ export default function TestimonialsPage() {
                       placeholder="Message shown after submission"
                     />
                   </div>
+                  {formError && <p className="text-sm text-red-600">{formError}</p>}
                   <div className="flex gap-2">
                     <Button type="submit" disabled={creating}>
                       {creating ? 'Creating...' : 'Create Form'}
@@ -365,7 +437,7 @@ export default function TestimonialsPage() {
                     <Button
                       type="button"
                       variant="outline"
-                      onClick={() => setShowFormCreator(false)}
+                      onClick={() => { setShowFormCreator(false); setFormError(''); }}
                     >
                       Cancel
                     </Button>

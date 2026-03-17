@@ -99,6 +99,7 @@ export default function CampaignsPage() {
   }
 
   async function handleSend(campaignId: string) {
+    if (!window.confirm('Send this campaign now? Emails will be sent to all recipients immediately.')) return;
     setSending(campaignId);
     const res = await fetch(`/api/campaigns/${campaignId}/send`, { method: 'POST' });
     if (res.ok) {
@@ -108,6 +109,7 @@ export default function CampaignsPage() {
   }
 
   async function handleDelete(id: string) {
+    if (!window.confirm('Are you sure you want to delete this campaign? This cannot be undone.')) return;
     const res = await fetch(`/api/campaigns/${id}`, { method: 'DELETE' });
     if (res.ok) {
       setCampaigns((prev) => prev.filter((c) => c.id !== id));

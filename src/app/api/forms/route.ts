@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { z } from 'zod';
 import { generateSlug } from '@/lib/utils';
+import { checkFormLimit, getUserPlan } from '@/lib/plan-limits';
 
 const createFormSchema = z.object({
   name: z.string().min(1).max(100),
@@ -29,6 +30,15 @@ export async function POST(request: NextRequest) {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Check plan limits
+    const plan = await getUserPlan(supabase, user.id);
+    const limitCheck = await checkFormLimit(supabase, user.id, plan);
+    if (!limitCheck.allowed) {
+      return NextResponse.json({
+        error: `Form limit reached (${limitCheck.current}/${limitCheck.limit}). Upgrade your plan for more.`,
+      }, { status: 403 });
     }
 
     const body = await request.json();

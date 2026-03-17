@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { z } from 'zod';
+import { checkTestimonialLimit, getUserPlan } from '@/lib/plan-limits';
 
 const createTestimonialSchema = z.object({
   form_id: z.string().uuid().optional(),
@@ -10,6 +11,7 @@ const createTestimonialSchema = z.object({
   author_title: z.string().max(100).optional().or(z.literal('')),
   content: z.string().min(1).max(2000),
   rating: z.number().min(1).max(5).optional(),
+  video_url: z.string().url().optional().or(z.literal('')),
 });
 
 // POST - Submit a new testimonial (public endpoint)
@@ -45,6 +47,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Could not determine testimonial owner' }, { status: 400 });
     }
 
+    // Check plan limits
+    const plan = await getUserPlan(supabase, userId);
+    const limitCheck = await checkTestimonialLimit(supabase, userId, plan);
+    if (!limitCheck.allowed) {
+      return NextResponse.json({
+        error: `Testimonial limit reached (${limitCheck.current}/${limitCheck.limit}). Upgrade your plan for more.`,
+      }, { status: 403 });
+    }
+
     const { data, error } = await supabase
       .from('testimonials')
       .insert({
@@ -55,6 +66,7 @@ export async function POST(request: NextRequest) {
         author_title: validated.author_title || null,
         content: validated.content,
         rating: validated.rating || null,
+        video_url: validated.video_url || null,
         status: 'pending',
         source: 'form',
         tags: [],

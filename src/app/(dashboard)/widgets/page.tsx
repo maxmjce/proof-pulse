@@ -34,6 +34,7 @@ export default function WidgetsPage() {
   const [maxTestimonials, setMaxTestimonials] = useState(9);
   const [showRating, setShowRating] = useState(true);
   const [showBranding, setShowBranding] = useState(true);
+  const [createError, setCreateError] = useState('');
 
   const fetchWidgets = useCallback(async () => {
     const res = await fetch('/api/widgets');
@@ -56,6 +57,7 @@ export default function WidgetsPage() {
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault();
     setCreating(true);
+    setCreateError('');
     const res = await fetch('/api/widgets', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -81,11 +83,15 @@ export default function WidgetsPage() {
       setWidgetName('');
       setShowCreator(false);
       fetchWidgets();
+    } else {
+      const json = await res.json();
+      setCreateError(typeof json.error === 'string' ? json.error : 'Failed to create widget.');
     }
     setCreating(false);
   }
 
   async function handleDelete(id: string) {
+    if (!window.confirm('Are you sure you want to delete this widget? This cannot be undone.')) return;
     const res = await fetch(`/api/widgets/${id}`, { method: 'DELETE' });
     if (res.ok) {
       setWidgets((prev) => prev.filter((w) => w.id !== id));
@@ -258,11 +264,13 @@ export default function WidgetsPage() {
                 </label>
               </div>
 
+              {createError && <p className="text-sm text-red-600">{createError}</p>}
+
               <div className="flex gap-2">
                 <Button type="submit" disabled={creating}>
                   {creating ? 'Creating...' : 'Create Widget'}
                 </Button>
-                <Button type="button" variant="outline" onClick={() => setShowCreator(false)}>
+                <Button type="button" variant="outline" onClick={() => { setShowCreator(false); setCreateError(''); }}>
                   Cancel
                 </Button>
               </div>

@@ -63,6 +63,7 @@ export default function CollectPage() {
       author_title: formData.get('title'),
       content: formData.get('content'),
       rating: rating || undefined,
+      video_url: formData.get('video_url') || undefined,
     };
 
     try {
@@ -201,6 +202,23 @@ export default function CollectPage() {
                 required
               />
             </div>
+
+            {form.collect_video && (
+              <div>
+                <label htmlFor="video_url" className="block text-sm font-medium text-gray-700 mb-1">
+                  Video Testimonial URL
+                </label>
+                <Input
+                  id="video_url"
+                  name="video_url"
+                  type="url"
+                  placeholder="https://youtube.com/watch?v=... or https://loom.com/share/..."
+                />
+                <p className="text-xs text-gray-400 mt-1">
+                  Paste a link to your video testimonial (YouTube, Loom, Vimeo, etc.)
+                </p>
+              </div>
+            )}
 
             {error && <p className="text-sm text-red-600">{error}</p>}
 
