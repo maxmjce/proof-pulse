@@ -29,11 +29,12 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // Redirect unauthenticated users trying to access dashboard
-  if (
-    !user &&
-    request.nextUrl.pathname.startsWith('/dashboard')
-  ) {
+  // Protected routes (inside (dashboard) route group)
+  const protectedPaths = ['/dashboard', '/testimonials', '/widgets', '/campaigns', '/settings'];
+  const isProtected = protectedPaths.some((p) => request.nextUrl.pathname.startsWith(p));
+
+  // Redirect unauthenticated users trying to access protected pages
+  if (!user && isProtected) {
     const url = request.nextUrl.clone();
     url.pathname = '/login';
     return NextResponse.redirect(url);
