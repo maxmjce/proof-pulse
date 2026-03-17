@@ -3,6 +3,9 @@ import { createClient } from '@/lib/supabase/server';
 import { resend } from '@/lib/resend/client';
 import { APP_URL } from '@/lib/constants';
 
+// Use verified domain or Resend's test address
+const FROM_EMAIL = process.env.RESEND_FROM_EMAIL || 'ProofPulse <onboarding@resend.dev>';
+
 export async function POST(
   _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -35,19 +38,25 @@ export async function POST(
     const collectUrl = form ? `${APP_URL}/collect/${form.slug}` : `${APP_URL}`;
 
     // Send emails via Resend
-    const results = await Promise.allSettled(
-      campaign.recipient_emails.map((email: string) =>
-        resend.emails.send({
-          from: 'ProofPulse <noreply@proofpulse.dev>',
-          to: email,
-          subject: campaign.subject,
-          html: buildEmailHtml(campaign.body, collectUrl),
-        })
-      )
-    );
+    let sent = 0;
+    let failed = 0;
+    const errors: string[] = [];
 
-    const sent = results.filter((r) => r.status === 'fulfilled').length;
-    const failed = results.filter((r) => r.status === 'rejected').length;
+    for (const email of campaign.recipient_emails) {
+      const { error } = await resend.emails.send({
+        from: FROM_EMAIL,
+        to: email,
+        subject: campaign.subject,
+        html: buildEmailHtml(campaign.body, collectUrl),
+      });
+
+      if (error) {
+        failed++;
+        errors.push(`${email}: ${error.message}`);
+      } else {
+        sent++;
+      }
+    }
 
     // Update campaign status
     await supabase
@@ -58,9 +67,15 @@ export async function POST(
       })
       .eq('id', id);
 
-    return NextResponse.json({ sent, failed, total: campaign.recipient_emails.length });
-  } catch {
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({
+      sent,
+      failed,
+      total: campaign.recipient_emails.length,
+      errors: errors.length > 0 ? errors : undefined,
+    });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Unknown error';
+    return NextResponse.json({ error: `Failed to send campaign: ${message}` }, { status: 500 });
   }
 }
 

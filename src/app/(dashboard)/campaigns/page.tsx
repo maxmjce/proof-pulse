@@ -102,8 +102,16 @@ export default function CampaignsPage() {
     if (!window.confirm('Send this campaign now? Emails will be sent to all recipients immediately.')) return;
     setSending(campaignId);
     const res = await fetch(`/api/campaigns/${campaignId}/send`, { method: 'POST' });
+    const json = await res.json();
     if (res.ok) {
       fetchCampaigns();
+      if (json.failed > 0) {
+        alert(`Sent ${json.sent}/${json.total} emails. ${json.failed} failed.\n${json.errors?.join('\n') || ''}`);
+      } else {
+        alert(`Successfully sent ${json.sent} email${json.sent !== 1 ? 's' : ''}!`);
+      }
+    } else {
+      alert(`Failed to send: ${json.error || 'Unknown error'}`);
     }
     setSending(null);
   }
