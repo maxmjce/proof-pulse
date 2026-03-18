@@ -7,26 +7,16 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { StarRating } from '@/components/ui/star-rating';
+import { Pagination } from '@/components/ui/pagination';
+import { EmptyState } from '@/components/ui/empty-state';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
+import { useToast } from '@/hooks/use-toast';
+import { useConfirm } from '@/hooks/use-confirm';
+import { useDebounce } from '@/hooks/use-debounce';
+import { Search, MessageSquarePlus, FileText } from 'lucide-react';
 import type { Testimonial, Form } from '@/types';
 import { formatDate } from '@/lib/utils';
-
-function StarDisplay({ rating }: { rating: number | null }) {
-  if (!rating) return null;
-  return (
-    <div className="flex gap-0.5">
-      {[1, 2, 3, 4, 5].map((star) => (
-        <svg
-          key={star}
-          className={`w-3.5 h-3.5 ${star <= rating ? 'text-yellow-400' : 'text-gray-200'}`}
-          fill="currentColor"
-          viewBox="0 0 20 20"
-        >
-          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-        </svg>
-      ))}
-    </div>
-  );
-}
 
 const statusBadgeVariant = {
   pending: 'warning' as const,
@@ -57,7 +47,7 @@ function TagInput({
   }
 
   function handleRemove(tag: string) {
-    onUpdate(tags.filter((t) => t !== tag));
+    onUpdate(tags.filter((item) => item !== tag));
   }
 
   return (
@@ -90,6 +80,8 @@ function TagInput({
 export default function TestimonialsPage() {
   const t = useTranslations('testimonials');
   const tc = useTranslations('common');
+  const { toast } = useToast();
+  const { confirm, confirmDialogProps } = useConfirm();
 
   const [tab, setTab] = useState<'testimonials' | 'forms'>('testimonials');
   const [filter, setFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all');
@@ -103,6 +95,10 @@ export default function TestimonialsPage() {
   const [formThankYou, setFormThankYou] = useState('Thank you for your testimonial!');
   const [creating, setCreating] = useState(false);
   const [formError, setFormError] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const debouncedSearch = useDebounce(searchQuery);
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 25;
 
   const fetchTestimonials = useCallback(async () => {
     const res = await fetch('/api/testimonials');
@@ -143,6 +139,10 @@ export default function TestimonialsPage() {
       setTestimonials((prev) =>
         prev.map((item) => (item.id === id ? { ...item, status } : item))
       );
+      toast({
+        title: status === 'approved' ? t('testimonialApproved') : t('testimonialRejected'),
+        variant: 'success',
+      });
     }
   }
 
@@ -173,10 +173,18 @@ export default function TestimonialsPage() {
   }
 
   async function handleDeleteTestimonial(id: string) {
-    if (!window.confirm(t('deleteConfirm'))) return;
+    const ok = await confirm({
+      title: t('deleteConfirm'),
+      description: t('deleteConfirm'),
+      confirmLabel: tc('delete'),
+      cancelLabel: tc('cancel'),
+      variant: 'destructive',
+    });
+    if (!ok) return;
     const res = await fetch(`/api/testimonials/${id}`, { method: 'DELETE' });
     if (res.ok) {
       setTestimonials((prev) => prev.filter((item) => item.id !== id));
+      toast({ title: t('testimonialDeleted'), variant: 'success' });
     }
   }
 
@@ -201,6 +209,7 @@ export default function TestimonialsPage() {
       setFormThankYou('Thank you for your testimonial!');
       setShowFormCreator(false);
       fetchForms();
+      toast({ title: t('formCreated'), variant: 'success' });
     } else {
       const json = await res.json();
       setFormError(typeof json.error === 'string' ? json.error : 'Failed to create form.');
@@ -209,10 +218,18 @@ export default function TestimonialsPage() {
   }
 
   async function handleDeleteForm(id: string) {
-    if (!window.confirm(t('deleteFormConfirm'))) return;
+    const ok = await confirm({
+      title: t('deleteFormConfirm'),
+      description: t('deleteFormConfirm'),
+      confirmLabel: tc('delete'),
+      cancelLabel: tc('cancel'),
+      variant: 'destructive',
+    });
+    if (!ok) return;
     const res = await fetch(`/api/forms/${id}`, { method: 'DELETE' });
     if (res.ok) {
       setForms((prev) => prev.filter((f) => f.id !== id));
+      toast({ title: t('formDeleted'), variant: 'success' });
     }
   }
 
@@ -229,13 +246,22 @@ export default function TestimonialsPage() {
     }
   }
 
-  const filtered = filter === 'all'
+  const statusFiltered = filter === 'all'
     ? testimonials
     : testimonials.filter((item) => item.status === filter);
 
-  if (loading) {
-    return <div className="text-center py-12 text-gray-500">Loading...</div>;
-  }
+  const searchFiltered = debouncedSearch
+    ? statusFiltered.filter((item) =>
+        [item.author_name, item.author_title, item.content, ...(item.tags || [])].some(
+          (field) => field?.toLowerCase().includes(debouncedSearch.toLowerCase())
+        )
+      )
+    : statusFiltered;
+
+  const totalPages = Math.ceil(searchFiltered.length / pageSize);
+  const paginatedItems = searchFiltered.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+
+  if (loading) return null;
 
   return (
     <div>
@@ -272,6 +298,17 @@ export default function TestimonialsPage() {
 
       {tab === 'testimonials' && (
         <>
+          {/* Search */}
+          <div className="relative mb-4">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Input
+              value={searchQuery}
+              onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
+              placeholder={t('searchPlaceholder')}
+              className="pl-10"
+            />
+          </div>
+
           {/* Filters */}
           <div className="flex gap-2 mb-6">
             {(['all', 'pending', 'approved', 'rejected'] as const).map((f) => (
@@ -292,97 +329,98 @@ export default function TestimonialsPage() {
           </div>
 
           {/* Testimonial List */}
-          {filtered.length === 0 ? (
-            <Card>
-              <CardContent className="p-12 text-center">
-                <h3 className="text-lg font-semibold mb-2">
-                  {testimonials.length === 0 ? t('noTestimonials') : t('noMatching')}
-                </h3>
-                <p className="text-gray-500 mb-4">
-                  {testimonials.length === 0
-                    ? t('noTestimonialsDesc')
-                    : t('noMatchingDesc')}
-                </p>
-                {testimonials.length === 0 && (
-                  <Button onClick={() => { setTab('forms'); setShowFormCreator(true); }}>
-                    {t('createFirstForm')}
-                  </Button>
-                )}
-              </CardContent>
-            </Card>
+          {searchFiltered.length === 0 ? (
+            <EmptyState
+              icon={MessageSquarePlus}
+              title={testimonials.length === 0 ? t('noTestimonials') : t('noMatching')}
+              description={testimonials.length === 0 ? t('noTestimonialsDesc') : t('noMatchingDesc')}
+              action={testimonials.length === 0 ? {
+                label: t('createFirstForm'),
+                onClick: () => { setTab('forms'); setShowFormCreator(true); },
+              } : undefined}
+            />
           ) : (
-            <div className="space-y-4">
-              {filtered.map((testimonial) => (
-                <Card key={testimonial.id}>
-                  <CardHeader className="pb-2">
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <CardTitle className="text-base">{testimonial.author_name}</CardTitle>
-                        {testimonial.author_title && (
-                          <p className="text-sm text-gray-500">{testimonial.author_title}</p>
-                        )}
-                        <p className="text-xs text-gray-400 mt-1">{formatDate(testimonial.created_at)}</p>
+            <>
+              <div className="space-y-4">
+                {paginatedItems.map((testimonial) => (
+                  <Card key={testimonial.id}>
+                    <CardHeader className="pb-2">
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <CardTitle className="text-base">{testimonial.author_name}</CardTitle>
+                          {testimonial.author_title && (
+                            <p className="text-sm text-gray-500">{testimonial.author_title}</p>
+                          )}
+                          <p className="text-xs text-gray-400 mt-1">{formatDate(testimonial.created_at)}</p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Badge variant={statusBadgeVariant[testimonial.status]}>
+                            {t(testimonial.status)}
+                          </Badge>
+                          {testimonial.is_featured && (
+                            <Badge>{t('featured')}</Badge>
+                          )}
+                        </div>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <Badge variant={statusBadgeVariant[testimonial.status]}>
-                          {t(testimonial.status)}
-                        </Badge>
-                        {testimonial.is_featured && (
-                          <Badge>{t('featured')}</Badge>
+                    </CardHeader>
+                    <CardContent>
+                      {testimonial.rating && <StarRating rating={testimonial.rating} size="sm" />}
+                      <p className="mt-2 text-gray-700">{testimonial.content}</p>
+
+                      {/* Tags */}
+                      <TagInput
+                        tags={testimonial.tags || []}
+                        onUpdate={(tags) => handleUpdateTags(testimonial.id, tags)}
+                        addTagPlaceholder={t('addTag')}
+                      />
+
+                      <div className="mt-4 flex gap-2">
+                        {testimonial.status !== 'approved' && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleStatusChange(testimonial.id, 'approved')}
+                          >
+                            {t('approve')}
+                          </Button>
                         )}
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <StarDisplay rating={testimonial.rating} />
-                    <p className="mt-2 text-gray-700">{testimonial.content}</p>
-
-                    {/* Tags */}
-                    <TagInput
-                      tags={testimonial.tags || []}
-                      onUpdate={(tags) => handleUpdateTags(testimonial.id, tags)}
-                      addTagPlaceholder={t('addTag')}
-                    />
-
-                    <div className="mt-4 flex gap-2">
-                      {testimonial.status !== 'approved' && (
+                        {testimonial.status !== 'rejected' && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleStatusChange(testimonial.id, 'rejected')}
+                          >
+                            {t('reject')}
+                          </Button>
+                        )}
                         <Button
                           size="sm"
-                          variant="outline"
-                          onClick={() => handleStatusChange(testimonial.id, 'approved')}
+                          variant="ghost"
+                          onClick={() => handleToggleFeatured(testimonial.id, testimonial.is_featured)}
                         >
-                          {t('approve')}
+                          {testimonial.is_featured ? t('unfeature') : t('feature')}
                         </Button>
-                      )}
-                      {testimonial.status !== 'rejected' && (
                         <Button
                           size="sm"
-                          variant="outline"
-                          onClick={() => handleStatusChange(testimonial.id, 'rejected')}
+                          variant="ghost"
+                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                          onClick={() => handleDeleteTestimonial(testimonial.id)}
                         >
-                          {t('reject')}
+                          {tc('delete')}
                         </Button>
-                      )}
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => handleToggleFeatured(testimonial.id, testimonial.is_featured)}
-                      >
-                        {testimonial.is_featured ? t('unfeature') : t('feature')}
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                        onClick={() => handleDeleteTestimonial(testimonial.id)}
-                      >
-                        {tc('delete')}
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={setCurrentPage}
+                totalItems={searchFiltered.length}
+                pageSize={pageSize}
+              />
+            </>
           )}
         </>
       )}
@@ -463,13 +501,12 @@ export default function TestimonialsPage() {
 
           {/* Forms List */}
           {forms.length === 0 && !showFormCreator ? (
-            <Card>
-              <CardContent className="p-12 text-center">
-                <h3 className="text-lg font-semibold mb-2">{t('noForms')}</h3>
-                <p className="text-gray-500 mb-4">{t('noFormsDesc')}</p>
-                <Button onClick={() => setShowFormCreator(true)}>{t('createFirstForm')}</Button>
-              </CardContent>
-            </Card>
+            <EmptyState
+              icon={FileText}
+              title={t('noForms')}
+              description={t('noFormsDesc')}
+              action={{ label: t('createFirstForm'), onClick: () => setShowFormCreator(true) }}
+            />
           ) : (
             <div className="space-y-4">
               {forms.map((form) => (
@@ -523,6 +560,8 @@ export default function TestimonialsPage() {
           )}
         </>
       )}
+
+      <ConfirmDialog {...confirmDialogProps} />
     </div>
   );
 }

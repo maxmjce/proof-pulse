@@ -7,6 +7,11 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
+import { EmptyState } from '@/components/ui/empty-state';
+import { useToast } from '@/hooks/use-toast';
+import { useConfirm } from '@/hooks/use-confirm';
+import { Mail } from 'lucide-react';
 import type { Campaign, Form } from '@/types';
 import { formatDate } from '@/lib/utils';
 
@@ -20,6 +25,8 @@ export default function CampaignsPage() {
   const t = useTranslations('campaigns');
   const tc = useTranslations('common');
   const locale = useLocale();
+  const { toast } = useToast();
+  const { confirm, confirmDialogProps } = useConfirm();
 
   const [campaigns, setCampaigns] = useState<(Campaign & { forms?: { name: string; slug: string } | null })[]>([]);
   const [forms, setForms] = useState<Form[]>([]);
@@ -99,6 +106,7 @@ export default function CampaignsPage() {
       setEmails('');
       setShowCreator(false);
       fetchCampaigns();
+      toast({ title: t('campaignCreated'), variant: 'success' });
     } else {
       const json = await res.json();
       setError(typeof json.error === 'string' ? json.error : 'Failed to create campaign.');
@@ -107,34 +115,46 @@ export default function CampaignsPage() {
   }
 
   async function handleSend(campaignId: string) {
-    if (!window.confirm(t('sendConfirm'))) return;
+    const ok = await confirm({
+      title: t('sendConfirm'),
+      description: t('sendConfirm'),
+      confirmLabel: t('sendNow'),
+      cancelLabel: tc('cancel'),
+    });
+    if (!ok) return;
     setSending(campaignId);
     const res = await fetch(`/api/campaigns/${campaignId}/send`, { method: 'POST' });
     const json = await res.json();
     if (res.ok) {
       fetchCampaigns();
       if (json.failed > 0) {
-        alert(t('sendPartial', { sent: json.sent, total: json.total, failed: json.failed }));
+        toast({ title: t('sendPartial', { sent: json.sent, total: json.total, failed: json.failed }), variant: 'warning' });
       } else {
-        alert(t('sendSuccess', { sent: json.sent }));
+        toast({ title: t('sendSuccess', { sent: json.sent }), variant: 'success' });
       }
     } else {
-      alert(t('sendFailed', { error: json.error || 'Unknown error' }));
+      toast({ title: t('sendFailed', { error: json.error || 'Unknown error' }), variant: 'error' });
     }
     setSending(null);
   }
 
   async function handleDelete(id: string) {
-    if (!window.confirm(t('deleteConfirm'))) return;
+    const ok = await confirm({
+      title: t('deleteConfirm'),
+      description: t('deleteConfirm'),
+      confirmLabel: tc('delete'),
+      cancelLabel: tc('cancel'),
+      variant: 'destructive',
+    });
+    if (!ok) return;
     const res = await fetch(`/api/campaigns/${id}`, { method: 'DELETE' });
     if (res.ok) {
       setCampaigns((prev) => prev.filter((c) => c.id !== id));
+      toast({ title: t('campaignDeleted'), variant: 'success' });
     }
   }
 
-  if (loading) {
-    return <div className="text-center py-12 text-gray-500">Loading...</div>;
-  }
+  if (loading) return null;
 
   return (
     <div>
@@ -239,13 +259,12 @@ export default function CampaignsPage() {
 
       {/* Campaign List */}
       {campaigns.length === 0 && !showCreator ? (
-        <Card>
-          <CardContent className="p-12 text-center">
-            <h3 className="text-lg font-semibold mb-2">{t('noCampaigns')}</h3>
-            <p className="text-gray-500 mb-4">{t('noCampaignsDesc')}</p>
-            <Button onClick={() => setShowCreator(true)}>{t('createFirstCampaign')}</Button>
-          </CardContent>
-        </Card>
+        <EmptyState
+          icon={Mail}
+          title={t('noCampaigns')}
+          description={t('noCampaignsDesc')}
+          action={{ label: t('createFirstCampaign'), onClick: () => setShowCreator(true) }}
+        />
       ) : (
         <div className="space-y-4">
           {campaigns.map((campaign) => (
@@ -300,6 +319,8 @@ export default function CampaignsPage() {
           ))}
         </div>
       )}
+
+      <ConfirmDialog {...confirmDialogProps} />
     </div>
   );
 }

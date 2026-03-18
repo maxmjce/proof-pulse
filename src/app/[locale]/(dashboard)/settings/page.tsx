@@ -8,15 +8,17 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Badge } from '@/components/ui/badge';
 import type { Profile, Plan } from '@/types';
 import { PRICING_TIERS, PLAN_LIMITS } from '@/lib/constants';
+import { useToast } from '@/hooks/use-toast';
+import { cn } from '@/lib/utils';
 
 export default function SettingsPage() {
   const t = useTranslations('settings');
   const tc = useTranslations('common');
+  const { toast } = useToast();
 
   const [profile, setProfile] = useState<(Profile & { email?: string }) | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [saved, setSaved] = useState(false);
   const [fullName, setFullName] = useState('');
   const [companyName, setCompanyName] = useState('');
   const [checkingOut, setCheckingOut] = useState<string | null>(null);
@@ -50,8 +52,7 @@ export default function SettingsPage() {
     if (res.ok) {
       const json = await res.json();
       setProfile((prev) => prev ? { ...prev, ...json.data } : null);
-      setSaved(true);
-      setTimeout(() => setSaved(false), 2000);
+      toast({ title: t('profileSaved'), variant: 'success' });
     }
     setSaving(false);
   }
@@ -86,9 +87,7 @@ export default function SettingsPage() {
     setBillingLoading(false);
   }
 
-  if (loading) {
-    return <div className="text-center py-12 text-gray-500">{tc('loading')}</div>;
-  }
+  if (loading) return null;
 
   const currentPlan = profile?.plan || 'free';
   const currentTier = PRICING_TIERS.find((tier) => tier.plan === currentPlan);
@@ -124,10 +123,15 @@ export default function SettingsPage() {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">{t('email')}</label>
-              <Input type="email" value={profile?.email || ''} disabled />
+              <Input
+                type="email"
+                value={profile?.email || ''}
+                disabled
+                className="bg-gray-50 text-gray-500"
+              />
             </div>
             <Button type="submit" disabled={saving}>
-              {saved ? t('saved') : saving ? t('saving') : t('saveChanges')}
+              {saving ? t('saving') : t('saveChanges')}
             </Button>
           </form>
         </CardContent>
@@ -155,12 +159,25 @@ export default function SettingsPage() {
                 {limits.widgets === Infinity ? t('unlimited') : limits.widgets} widget{limits.widgets !== 1 ? 's' : ''}
               </p>
               {profile?.testimonial_count !== undefined && (
-                <p className="text-xs text-gray-400 mt-1">
-                  {t('using', {
-                    used: profile.testimonial_count,
-                    limit: limits.testimonials === Infinity ? t('unlimited') : limits.testimonials,
-                  })}
-                </p>
+                <>
+                  <p className="text-xs text-gray-400 mt-1">
+                    {t('using', {
+                      used: profile.testimonial_count,
+                      limit: limits.testimonials === Infinity ? t('unlimited') : limits.testimonials,
+                    })}
+                  </p>
+                  {limits.testimonials !== Infinity && (
+                    <div className="mt-2 w-full bg-gray-200 rounded-full h-2">
+                      <div
+                        className={cn(
+                          'h-2 rounded-full transition-all',
+                          (profile.testimonial_count / limits.testimonials) > 0.8 ? 'bg-red-500' : 'bg-indigo-600'
+                        )}
+                        style={{ width: `${Math.min((profile.testimonial_count / limits.testimonials) * 100, 100)}%` }}
+                      />
+                    </div>
+                  )}
+                </>
               )}
             </div>
             {profile?.stripe_customer_id && currentPlan !== 'free' && (

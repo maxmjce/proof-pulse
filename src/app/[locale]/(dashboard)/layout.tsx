@@ -1,8 +1,10 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 import { Link, usePathname } from '@/i18n/navigation';
 import { useState } from 'react';
+import { Toaster } from '@/components/ui/toaster';
+import { Globe } from 'lucide-react';
 
 const NAV_ITEMS = [
   { key: 'dashboard' as const, href: '/dashboard' },
@@ -20,6 +22,7 @@ export default function DashboardLayout({
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
   const t = useTranslations('nav');
+  const locale = useLocale();
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -48,6 +51,14 @@ export default function DashboardLayout({
             </nav>
           </div>
           <div className="flex items-center gap-3">
+            <Link
+              href={pathname}
+              locale={locale === 'sv' ? 'en' : 'sv'}
+              className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700"
+            >
+              <Globe className="h-3.5 w-3.5" />
+              {locale === 'sv' ? 'EN' : 'SV'}
+            </Link>
             <form action="/api/auth/signout" method="POST">
               <button
                 type="submit"
@@ -98,6 +109,7 @@ export default function DashboardLayout({
 
       {/* Main content */}
       <main className="max-w-7xl mx-auto px-4 py-8">{children}</main>
+      <Toaster />
     </div>
   );
 }

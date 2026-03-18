@@ -6,6 +6,11 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
+import { EmptyState } from '@/components/ui/empty-state';
+import { useToast } from '@/hooks/use-toast';
+import { useConfirm } from '@/hooks/use-confirm';
+import { Code2 } from 'lucide-react';
 import type { Widget, WidgetType } from '@/types';
 import { getEmbedCode } from '@/lib/utils';
 
@@ -19,6 +24,8 @@ const WIDGET_TYPES: { type: WidgetType; labelKey: string; descKey: string }[] = 
 export default function WidgetsPage() {
   const t = useTranslations('widgets');
   const tc = useTranslations('common');
+  const { toast } = useToast();
+  const { confirm, confirmDialogProps } = useConfirm();
 
   const [widgets, setWidgets] = useState<Widget[]>([]);
   const [loading, setLoading] = useState(true);
@@ -87,6 +94,7 @@ export default function WidgetsPage() {
       setWidgetName('');
       setShowCreator(false);
       fetchWidgets();
+      toast({ title: t('widgetCreated'), variant: 'success' });
     } else {
       const json = await res.json();
       setCreateError(typeof json.error === 'string' ? json.error : 'Failed to create widget.');
@@ -95,11 +103,19 @@ export default function WidgetsPage() {
   }
 
   async function handleDelete(id: string) {
-    if (!window.confirm(t('deleteConfirm'))) return;
+    const ok = await confirm({
+      title: t('deleteConfirm'),
+      description: t('deleteConfirm'),
+      confirmLabel: tc('delete'),
+      cancelLabel: tc('cancel'),
+      variant: 'destructive',
+    });
+    if (!ok) return;
     const res = await fetch(`/api/widgets/${id}`, { method: 'DELETE' });
     if (res.ok) {
       setWidgets((prev) => prev.filter((w) => w.id !== id));
       if (selectedWidget?.id === id) setSelectedWidget(null);
+      toast({ title: t('widgetDeleted'), variant: 'success' });
     }
   }
 
@@ -122,9 +138,7 @@ export default function WidgetsPage() {
     setTimeout(() => setCopied(null), 2000);
   }
 
-  if (loading) {
-    return <div className="text-center py-12 text-gray-500">Loading...</div>;
-  }
+  if (loading) return null;
 
   return (
     <div>
@@ -331,13 +345,12 @@ export default function WidgetsPage() {
 
       {/* Widget List */}
       {widgets.length === 0 && !showCreator ? (
-        <Card>
-          <CardContent className="p-12 text-center">
-            <h3 className="text-lg font-semibold mb-2">{t('noWidgets')}</h3>
-            <p className="text-gray-500 mb-4">{t('noWidgetsDesc')}</p>
-            <Button onClick={() => setShowCreator(true)}>{t('createFirstWidget')}</Button>
-          </CardContent>
-        </Card>
+        <EmptyState
+          icon={Code2}
+          title={t('noWidgets')}
+          description={t('noWidgetsDesc')}
+          action={{ label: t('createFirstWidget'), onClick: () => setShowCreator(true) }}
+        />
       ) : (
         <div className="grid md:grid-cols-2 gap-4">
           {widgets.map((widget) => (
@@ -396,6 +409,8 @@ export default function WidgetsPage() {
           </div>
         </div>
       )}
+
+      <ConfirmDialog {...confirmDialogProps} />
     </div>
   );
 }
