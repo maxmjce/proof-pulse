@@ -17,7 +17,9 @@
       "Bash(cp \"\\(dashboard\\)/layout.tsx\" \"[locale]/\\(dashboard\\)/layout.tsx\")",
       "Bash(rm \"collect/[slug]/page.tsx\")",
       "Bash(rmdir \"collect/[slug]\" \"collect\")",
-      "Bash(ProofPulse\" for child pages:*)"
+      "Bash(ProofPulse\" for child pages:*)",
+      "Bash(git remote:*)",
+      "Bash(git push:*)"
     ]
   },
   "enableAllProjectMcpServers": true,
