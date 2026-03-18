@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { StarRating } from '@/components/ui/star-rating';
 import { PRICING_TIERS } from '@/lib/constants';
+import { LandingPageJsonLd, FAQPageJsonLd } from '@/components/seo/json-ld';
 
 const PLAN_FEATURE_KEYS = {
   free: ['freeTestimonials', 'freeForm', 'freeWidget', 'freeBranding', 'freeAnalytics'],
@@ -33,6 +34,14 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
 
   return (
     <div className="min-h-screen">
+      <LandingPageJsonLd locale={locale} />
+      <FAQPageJsonLd faqs={[
+        { question: t('faq1Q'), answer: t('faq1A') },
+        { question: t('faq2Q'), answer: t('faq2A') },
+        { question: t('faq3Q'), answer: t('faq3A') },
+        { question: t('faq4Q'), answer: t('faq4A') },
+        { question: t('faq5Q'), answer: t('faq5A') },
+      ]} />
       {/* Nav */}
       <nav className="border-b border-gray-100">
         <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">

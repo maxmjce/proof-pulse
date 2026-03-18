@@ -16,7 +16,8 @@
       "Bash(cp \"\\(auth\\)/callback/route.ts\" \"[locale]/\\(auth\\)/callback/route.ts\")",
       "Bash(cp \"\\(dashboard\\)/layout.tsx\" \"[locale]/\\(dashboard\\)/layout.tsx\")",
       "Bash(rm \"collect/[slug]/page.tsx\")",
-      "Bash(rmdir \"collect/[slug]\" \"collect\")"
+      "Bash(rmdir \"collect/[slug]\" \"collect\")",
+      "Bash(ProofPulse\" for child pages:*)"
     ]
   },
   "enableAllProjectMcpServers": true,
