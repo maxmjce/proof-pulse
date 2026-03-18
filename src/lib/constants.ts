@@ -23,7 +23,7 @@ export const PRICING_TIERS: PricingTier[] = [
   {
     name: 'Creator',
     plan: 'creator',
-    price: 19,
+    price: 199,
     testimonials: 100,
     forms: 5,
     widgets: 5,
@@ -40,7 +40,7 @@ export const PRICING_TIERS: PricingTier[] = [
   {
     name: 'Business',
     plan: 'business',
-    price: 49,
+    price: 499,
     testimonials: null,
     forms: null,
     widgets: null,

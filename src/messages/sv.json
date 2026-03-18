@@ -89,7 +89,23 @@
     "demo2Content": "Jag brukade manuellt fråga efter recensioner via e-post. Nu skickar jag bara en ProofPulse-länk och omdömen rullar in. Embed-widgeten ser fantastisk ut på min portfolio.",
     "demo3Name": "Emily Rodriguez",
     "demo3Title": "Kursskapare",
-    "demo3Content": "De automatiserade e-postkampanjerna är en game-changer. Efter varje kursavslut får studenter en förfrågan och jag får autentiska omdömen utan att lyfta ett finger."
+    "demo3Content": "De automatiserade e-postkampanjerna är en game-changer. Efter varje kursavslut får studenter en förfrågan och jag får autentiska omdömen utan att lyfta ett finger.",
+    "statsTitle": "Betrott av växande företag",
+    "stat1Number": "10 000+",
+    "stat1Label": "Insamlade omdömen",
+    "stat2Number": "2 500+",
+    "stat2Label": "Aktiva företag",
+    "stat3Number": "98%",
+    "stat3Label": "Kundnöjdhet",
+    "stat4Number": "3x",
+    "stat4Label": "Genomsnittlig konverteringsökning",
+    "whyTitle": "Varför företag väljer ProofPulse",
+    "why1Title": "Kom igång på minuter",
+    "why1Desc": "Skapa ditt första insamlingsformulär på under 2 minuter. Ingen teknisk kunskap krävs. Dela bara länken och se omdömen komma in.",
+    "why2Title": "Fungerar på alla webbplatser",
+    "why2Desc": "Vår embed-widget fungerar på WordPress, Shopify, Squarespace, Wix, egna sidor — överallt där du kan klistra in en rad kod.",
+    "why3Title": "Öka konverteringar",
+    "why3Desc": "Företag som använder social bevisning ser upp till 3x högre konverteringsgrad. Visa autentiska kundröster där de betyder mest."
   },
   "auth": {
     "welcomeBack": "Välkommen tillbaka",
@@ -326,8 +342,8 @@
     "required": "Obligatoriskt"
   },
   "seo": {
-    "title": "ProofPulse — Samla och visa kundomdömen",
-    "description": "Det enklaste sättet att samla, hantera och visa kundomdömen med snygga widgetar. Gratis att börja.",
+    "title": "ProofPulse — Samla och visa kundomdömen | Social bevisning-plattform",
+    "description": "Samla kundomdömen med delbara länkar. Visa dem på din webbplats med snygga embed-widgetar. Automatisera förfrågningar med e-postkampanjer. Gratis att börja.",
     "dashboardTitle": "Översikt | ProofPulse",
     "testimonialsTitle": "Omdömen | ProofPulse",
     "widgetsTitle": "Widgetar | ProofPulse",

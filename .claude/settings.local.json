@@ -19,7 +19,8 @@
       "Bash(rmdir \"collect/[slug]\" \"collect\")",
       "Bash(ProofPulse\" for child pages:*)",
       "Bash(git remote:*)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "mcp__playwright__playwright_navigate"
     ]
   },
   "enableAllProjectMcpServers": true,

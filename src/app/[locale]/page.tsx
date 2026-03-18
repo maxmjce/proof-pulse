@@ -6,6 +6,7 @@ import { StarRating } from '@/components/ui/star-rating';
 import { PRICING_TIERS } from '@/lib/constants';
 import { LandingPageJsonLd, FAQPageJsonLd } from '@/components/seo/json-ld';
 import { ScrollFadeIn } from '@/components/landing/scroll-fade-in';
+import { LinkIcon, LayoutGrid, Video, Mail, CheckCircle, Palette, Zap, Globe, TrendingUp } from 'lucide-react';
 
 const PLAN_FEATURE_KEYS = {
   free: ['freeTestimonials', 'freeForm', 'freeWidget', 'freeBranding', 'freeAnalytics'],
@@ -25,12 +26,12 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
   ];
 
   const FEATURES = [
-    { title: t('shareableLinks'), desc: t('shareableLinksDesc') },
-    { title: t('embeddableWidgets'), desc: t('embeddableWidgetsDesc') },
-    { title: t('videoTestimonials'), desc: t('videoTestimonialsDesc') },
-    { title: t('emailCampaigns'), desc: t('emailCampaignsDesc') },
-    { title: t('approveManage'), desc: t('approveManageDesc') },
-    { title: t('customBranding'), desc: t('customBrandingDesc') },
+    { title: t('shareableLinks'), desc: t('shareableLinksDesc'), icon: LinkIcon },
+    { title: t('embeddableWidgets'), desc: t('embeddableWidgetsDesc'), icon: LayoutGrid },
+    { title: t('videoTestimonials'), desc: t('videoTestimonialsDesc'), icon: Video },
+    { title: t('emailCampaigns'), desc: t('emailCampaignsDesc'), icon: Mail },
+    { title: t('approveManage'), desc: t('approveManageDesc'), icon: CheckCircle },
+    { title: t('customBranding'), desc: t('customBrandingDesc'), icon: Palette },
   ];
 
   return (
@@ -44,7 +45,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
         { question: t('faq5Q'), answer: t('faq5A') },
       ]} />
       {/* Nav */}
-      <nav className="border-b border-gray-100">
+      <nav className="border-b border-gray-100/80 bg-white/80 backdrop-blur-md sticky top-0 z-50">
         <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
           <span className="text-xl font-bold text-indigo-600">ProofPulse</span>
           <div className="flex items-center gap-4">
@@ -62,8 +63,11 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
       </nav>
 
       {/* Hero */}
-      <section className="py-24 px-4">
-        <div className="max-w-3xl mx-auto text-center">
+      <section className="hero-gradient py-28 px-4 relative overflow-hidden">
+        {/* Decorative circles */}
+        <div className="absolute top-20 left-10 w-72 h-72 bg-indigo-300/20 rounded-full blur-3xl" />
+        <div className="absolute bottom-10 right-10 w-96 h-96 bg-purple-300/20 rounded-full blur-3xl" />
+        <div className="max-w-3xl mx-auto text-center relative">
           <h1 className="text-5xl font-bold tracking-tight text-gray-900 mb-6">
             {t('heroTitle')}
             <span className="text-indigo-600"> {t('heroTitleHighlight')}</span>
@@ -83,8 +87,32 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
         </div>
       </section>
 
+      {/* Stats bar */}
+      <section className="py-12 px-4 border-y border-gray-200 bg-white">
+        <div className="max-w-5xl mx-auto">
+          <ScrollFadeIn>
+            <p className="text-center text-sm font-medium text-gray-500 mb-8">{t('statsTitle')}</p>
+          </ScrollFadeIn>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+            {[
+              { number: t('stat1Number'), label: t('stat1Label') },
+              { number: t('stat2Number'), label: t('stat2Label') },
+              { number: t('stat3Number'), label: t('stat3Label') },
+              { number: t('stat4Number'), label: t('stat4Label') },
+            ].map((stat, i) => (
+              <ScrollFadeIn key={stat.label} delay={i * 100}>
+                <div className="text-center">
+                  <p className="text-3xl font-bold text-indigo-600">{stat.number}</p>
+                  <p className="text-sm text-gray-500 mt-1">{stat.label}</p>
+                </div>
+              </ScrollFadeIn>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* How it works */}
-      <section className="py-20 px-4 bg-gray-50">
+      <section className="py-20 px-4 section-gradient-1">
         <div className="max-w-5xl mx-auto">
           <ScrollFadeIn>
             <h2 className="text-3xl font-bold text-center mb-12">{t('howItWorks')}</h2>
@@ -134,7 +162,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
       </section>
 
       {/* Features */}
-      <section className="py-20 px-4 bg-gray-50">
+      <section className="py-20 px-4 section-gradient-2">
         <div className="max-w-5xl mx-auto">
           <ScrollFadeIn>
             <h2 className="text-3xl font-bold text-center mb-12">{t('everythingYouNeed')}</h2>
@@ -143,6 +171,9 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
             {FEATURES.map((f) => (
               <Card key={f.title} className="hover:-translate-y-0.5 transition-all duration-200">
                 <CardContent className="p-6">
+                  <div className="w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center mb-3">
+                    <f.icon className="w-5 h-5 text-indigo-600" />
+                  </div>
                   <h3 className="font-semibold mb-2">{f.title}</h3>
                   <p className="text-sm text-gray-600">{f.desc}</p>
                 </CardContent>
@@ -171,7 +202,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
                 <CardContent className="p-6">
                   <h3 className="text-lg font-semibold">{tp(tier.plan)}</h3>
                   <div className="mt-2 mb-6">
-                    <span className="text-4xl font-bold">${tier.price}</span>
+                    <span className="text-4xl font-bold">{tier.price === 0 ? '0' : tier.price} kr</span>
                     {tier.price > 0 && <span className="text-gray-500">{t('perMonth')}</span>}
                   </div>
                   <ul className="space-y-3 mb-8">
@@ -195,6 +226,32 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
                   </Button>
                 </CardContent>
               </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Why ProofPulse */}
+      <section className="py-20 px-4 section-gradient-1">
+        <div className="max-w-5xl mx-auto">
+          <ScrollFadeIn>
+            <h2 className="text-3xl font-bold text-center mb-12">{t('whyTitle')}</h2>
+          </ScrollFadeIn>
+          <div className="grid md:grid-cols-3 gap-8">
+            {[
+              { title: t('why1Title'), desc: t('why1Desc'), icon: Zap },
+              { title: t('why2Title'), desc: t('why2Desc'), icon: Globe },
+              { title: t('why3Title'), desc: t('why3Desc'), icon: TrendingUp },
+            ].map((item, i) => (
+              <ScrollFadeIn key={item.title} delay={i * 150}>
+                <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
+                  <div className="w-12 h-12 bg-indigo-600 rounded-lg flex items-center justify-center mb-4">
+                    <item.icon className="w-6 h-6 text-white" />
+                  </div>
+                  <h3 className="text-lg font-semibold mb-2">{item.title}</h3>
+                  <p className="text-gray-600 text-sm leading-relaxed">{item.desc}</p>
+                </div>
+              </ScrollFadeIn>
             ))}
           </div>
         </div>
@@ -224,7 +281,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
       </section>
 
       {/* CTA */}
-      <section className="py-20 px-4 bg-indigo-600">
+      <section className="py-20 px-4 cta-gradient">
         <div className="max-w-3xl mx-auto text-center">
           <h2 className="text-3xl font-bold text-white mb-4">
             {t('readyToConvert')}
@@ -239,9 +296,9 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
       </section>
 
       {/* Footer */}
-      <footer className="py-8 px-4 border-t border-gray-100">
-        <div className="max-w-6xl mx-auto flex items-center justify-between text-sm text-gray-500">
-          <span>ProofPulse</span>
+      <footer className="py-12 px-4 border-t border-gray-200 bg-gray-50">
+        <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-gray-500">
+          <span className="font-semibold text-gray-700">ProofPulse</span>
           <span>{t('builtWith')}</span>
         </div>
       </footer>
