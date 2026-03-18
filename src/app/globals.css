@@ -3,6 +3,23 @@
 :root {
   --background: #ffffff;
   --foreground: #111827;
+  --card: #ffffff;
+  --card-foreground: #111827;
+  --muted: #f9fafb;
+  --muted-foreground: #6b7280;
+  --border: #e5e7eb;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0f172a;
+    --foreground: #f1f5f9;
+    --card: #1e293b;
+    --card-foreground: #f1f5f9;
+    --muted: #1e293b;
+    --muted-foreground: #94a3b8;
+    --border: #334155;
+  }
 }
 
 @theme inline {
@@ -16,4 +33,147 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+}
+
+/* Animations */
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slide-in-from-top {
+  from {
+    opacity: 0;
+    transform: translateY(-100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.5s ease-out both;
+}
+
+.animate-fade-in {
+  animation: fade-in 0.3s ease-out both;
+}
+
+/* Staggered animation delays for landing page sections */
+.animate-delay-100 { animation-delay: 100ms; }
+.animate-delay-200 { animation-delay: 200ms; }
+.animate-delay-300 { animation-delay: 300ms; }
+.animate-delay-400 { animation-delay: 400ms; }
+
+/* Focus visible for all interactive elements */
+*:focus-visible {
+  outline: 2px solid #6366f1;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Dark mode overrides for key elements */
+@media (prefers-color-scheme: dark) {
+  .bg-white {
+    background-color: var(--card);
+  }
+
+  .bg-gray-50 {
+    background-color: var(--muted);
+  }
+
+  .border-gray-200,
+  .border-gray-100 {
+    border-color: var(--border);
+  }
+
+  .text-gray-900 {
+    color: var(--foreground);
+  }
+
+  .text-gray-700 {
+    color: #cbd5e1;
+  }
+
+  .text-gray-600 {
+    color: #94a3b8;
+  }
+
+  .text-gray-500 {
+    color: var(--muted-foreground);
+  }
+
+  .text-gray-400 {
+    color: #64748b;
+  }
+
+  .bg-gray-100 {
+    background-color: #334155;
+  }
+
+  .bg-gray-200 {
+    background-color: #475569;
+  }
+
+  .bg-gray-900 {
+    background-color: #020617;
+  }
+
+  /* Card shadow in dark mode */
+  .shadow-sm {
+    box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.2);
+  }
+
+  .hover\:shadow-md:hover {
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.3), 0 2px 4px -2px rgb(0 0 0 / 0.3);
+  }
+
+  /* Input fields in dark mode */
+  input, textarea, select {
+    background-color: var(--muted);
+    border-color: var(--border);
+    color: var(--foreground);
+  }
+
+  input::placeholder, textarea::placeholder {
+    color: #64748b;
+  }
+
+  /* Badge overrides */
+  .bg-indigo-100 { background-color: #312e81; }
+  .text-indigo-800 { color: #a5b4fc; }
+  .bg-indigo-50 { background-color: #1e1b4b; }
+  .text-indigo-700 { color: #818cf8; }
+  .bg-green-100 { background-color: #14532d; }
+  .text-green-800 { color: #86efac; }
+  .bg-yellow-100 { background-color: #422006; }
+  .text-yellow-800 { color: #fde047; }
+  .bg-red-100 { background-color: #450a0a; }
+  .text-red-800 { color: #fca5a5; }
+
+  /* Code blocks */
+  code {
+    background-color: #1e293b;
+    color: #e2e8f0;
+  }
+
+  pre {
+    background-color: #020617;
+  }
 }

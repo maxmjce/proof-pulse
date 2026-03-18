@@ -5,6 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { StarRating } from '@/components/ui/star-rating';
 import { PRICING_TIERS } from '@/lib/constants';
 import { LandingPageJsonLd, FAQPageJsonLd } from '@/components/seo/json-ld';
+import { ScrollFadeIn } from '@/components/landing/scroll-fade-in';
 
 const PLAN_FEATURE_KEYS = {
   free: ['freeTestimonials', 'freeForm', 'freeWidget', 'freeBranding', 'freeAnalytics'],
@@ -85,20 +86,24 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
       {/* How it works */}
       <section className="py-20 px-4 bg-gray-50">
         <div className="max-w-5xl mx-auto">
-          <h2 className="text-3xl font-bold text-center mb-12">{t('howItWorks')}</h2>
+          <ScrollFadeIn>
+            <h2 className="text-3xl font-bold text-center mb-12">{t('howItWorks')}</h2>
+          </ScrollFadeIn>
           <div className="grid md:grid-cols-3 gap-8">
             {[
               { step: '1', title: t('step1Title'), desc: t('step1Desc') },
               { step: '2', title: t('step2Title'), desc: t('step2Desc') },
               { step: '3', title: t('step3Title'), desc: t('step3Desc') },
-            ].map((item) => (
-              <div key={item.step} className="text-center">
-                <div className="w-12 h-12 bg-indigo-600 text-white rounded-full flex items-center justify-center text-lg font-bold mx-auto mb-4">
-                  {item.step}
+            ].map((item, i) => (
+              <ScrollFadeIn key={item.step} delay={i * 150}>
+                <div className="text-center">
+                  <div className="w-12 h-12 bg-indigo-600 text-white rounded-full flex items-center justify-center text-lg font-bold mx-auto mb-4">
+                    {item.step}
+                  </div>
+                  <h3 className="text-lg font-semibold mb-2">{item.title}</h3>
+                  <p className="text-gray-600">{item.desc}</p>
                 </div>
-                <h3 className="text-lg font-semibold mb-2">{item.title}</h3>
-                <p className="text-gray-600">{item.desc}</p>
-              </div>
+              </ScrollFadeIn>
             ))}
           </div>
         </div>
@@ -107,8 +112,10 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
       {/* Social Proof */}
       <section className="py-20 px-4">
         <div className="max-w-5xl mx-auto">
-          <h2 className="text-3xl font-bold text-center mb-4">{t('lovedByBusinesses')}</h2>
-          <p className="text-center text-gray-600 mb-12">{t('seeWhatUsersSay')}</p>
+          <ScrollFadeIn>
+            <h2 className="text-3xl font-bold text-center mb-4">{t('lovedByBusinesses')}</h2>
+            <p className="text-center text-gray-600 mb-12">{t('seeWhatUsersSay')}</p>
+          </ScrollFadeIn>
           <div className="grid md:grid-cols-3 gap-6">
             {DEMO_TESTIMONIALS.map((testimonial) => (
               <Card key={testimonial.name}>
@@ -129,7 +136,9 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
       {/* Features */}
       <section className="py-20 px-4 bg-gray-50">
         <div className="max-w-5xl mx-auto">
-          <h2 className="text-3xl font-bold text-center mb-12">{t('everythingYouNeed')}</h2>
+          <ScrollFadeIn>
+            <h2 className="text-3xl font-bold text-center mb-12">{t('everythingYouNeed')}</h2>
+          </ScrollFadeIn>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {FEATURES.map((f) => (
               <Card key={f.title} className="hover:-translate-y-0.5 transition-all duration-200">
@@ -194,7 +203,9 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
       {/* FAQ */}
       <section className="py-20 px-4">
         <div className="max-w-3xl mx-auto">
-          <h2 className="text-3xl font-bold text-center mb-12">{t('faqTitle')}</h2>
+          <ScrollFadeIn>
+            <h2 className="text-3xl font-bold text-center mb-12">{t('faqTitle')}</h2>
+          </ScrollFadeIn>
           <div className="space-y-4">
             {[
               { q: t('faq1Q'), a: t('faq1A') },
