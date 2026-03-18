@@ -155,8 +155,8 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
       {/* Pricing */}
       <section id="pricing" className="py-20 px-4">
         <div className="max-w-5xl mx-auto">
-          <h2 className="text-3xl font-bold text-center mb-4">{tp('simplePricing')}</h2>
-          <p className="text-center text-gray-600 mb-12">{tp('startFreeUpgrade')}</p>
+          <h2 className="text-3xl font-bold text-center mb-4">{t('simplePricing')}</h2>
+          <p className="text-center text-gray-600 mb-12">{t('startFreeUpgrade')}</p>
           <div className="grid md:grid-cols-3 gap-6">
             {PRICING_TIERS.map((tier) => (
               <Card
@@ -165,14 +165,14 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
               >
                 {tier.plan === 'creator' && (
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-indigo-600 text-white text-xs font-medium px-3 py-1 rounded-full">
-                    {tp('mostPopular')}
+                    {t('mostPopular')}
                   </div>
                 )}
                 <CardContent className="p-6">
                   <h3 className="text-lg font-semibold">{tp(tier.plan)}</h3>
                   <div className="mt-2 mb-6">
                     <span className="text-4xl font-bold">${tier.price}</span>
-                    {tier.price > 0 && <span className="text-gray-500">{tp('perMonth')}</span>}
+                    {tier.price > 0 && <span className="text-gray-500">{t('perMonth')}</span>}
                   </div>
                   <ul className="space-y-3 mb-8">
                     {PLAN_FEATURE_KEYS[tier.plan as keyof typeof PLAN_FEATURE_KEYS].map((key) => (
