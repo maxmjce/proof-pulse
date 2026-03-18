@@ -1,15 +1,15 @@
 'use client';
 
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { useTranslations } from 'next-intl';
+import { Link, usePathname } from '@/i18n/navigation';
 import { useState } from 'react';
 
 const NAV_ITEMS = [
-  { label: 'Dashboard', href: '/dashboard' },
-  { label: 'Testimonials', href: '/testimonials' },
-  { label: 'Widgets', href: '/widgets' },
-  { label: 'Campaigns', href: '/campaigns' },
-  { label: 'Settings', href: '/settings' },
+  { key: 'dashboard' as const, href: '/dashboard' },
+  { key: 'testimonials' as const, href: '/testimonials' },
+  { key: 'widgets' as const, href: '/widgets' },
+  { key: 'campaigns' as const, href: '/campaigns' },
+  { key: 'settings' as const, href: '/settings' },
 ];
 
 export default function DashboardLayout({
@@ -19,6 +19,7 @@ export default function DashboardLayout({
 }) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const t = useTranslations('nav');
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -34,13 +35,14 @@ export default function DashboardLayout({
                 <Link
                   key={item.href}
                   href={item.href}
+                  aria-current={pathname === item.href ? 'page' : undefined}
                   className={`px-3 py-2 text-sm rounded-md transition-colors ${
                     pathname === item.href
                       ? 'bg-indigo-50 text-indigo-700 font-medium'
                       : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
                   }`}
                 >
-                  {item.label}
+                  {t(item.key)}
                 </Link>
               ))}
             </nav>
@@ -51,12 +53,13 @@ export default function DashboardLayout({
                 type="submit"
                 className="text-sm text-gray-500 hover:text-gray-700"
               >
-                Sign out
+                {t('signOut')}
               </button>
             </form>
             {/* Mobile menu button */}
             <button
               type="button"
+              aria-label="Toggle menu"
               className="md:hidden p-2 text-gray-500 hover:text-gray-700"
               onClick={() => setMobileOpen(!mobileOpen)}
             >
@@ -78,6 +81,7 @@ export default function DashboardLayout({
               <Link
                 key={item.href}
                 href={item.href}
+                aria-current={pathname === item.href ? 'page' : undefined}
                 onClick={() => setMobileOpen(false)}
                 className={`block px-3 py-2 text-sm rounded-md transition-colors ${
                   pathname === item.href
@@ -85,7 +89,7 @@ export default function DashboardLayout({
                     : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
                 }`}
               >
-                {item.label}
+                {t(item.key)}
               </Link>
             ))}
           </nav>

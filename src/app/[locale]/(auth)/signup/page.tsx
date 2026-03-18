@@ -1,8 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
+import { Link } from '@/i18n/navigation';
+import { useRouter } from '@/i18n/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -15,6 +16,7 @@ export default function SignupPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const t = useTranslations('auth');
 
   async function handleSignup(e: React.FormEvent) {
     e.preventDefault();
@@ -59,46 +61,46 @@ export default function SignupPage() {
           <Link href="/" className="text-2xl font-bold text-indigo-600 mb-2 block">
             ProofPulse
           </Link>
-          <CardTitle>Create your account</CardTitle>
+          <CardTitle>{t('createAccount')}</CardTitle>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSignup} className="space-y-4">
             <div>
               <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
-                Full Name
+                {t('fullName')}
               </label>
               <Input
                 id="name"
                 type="text"
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
-                placeholder="John Doe"
+                placeholder={t('fullNamePlaceholder')}
                 required
               />
             </div>
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-                Email
+                {t('email')}
               </label>
               <Input
                 id="email"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@example.com"
+                placeholder={t('emailPlaceholder')}
                 required
               />
             </div>
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
-                Password
+                {t('password')}
               </label>
               <Input
                 id="password"
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="At least 6 characters"
+                placeholder={t('passwordMinLength')}
                 minLength={6}
                 required
               />
@@ -107,7 +109,7 @@ export default function SignupPage() {
               <p className="text-sm text-red-600">{error}</p>
             )}
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? 'Creating account...' : 'Create Account'}
+              {loading ? t('creatingAccount') : t('signUp')}
             </Button>
           </form>
 
@@ -118,13 +120,13 @@ export default function SignupPage() {
           </div>
 
           <Button variant="outline" className="w-full" onClick={handleGoogleSignup}>
-            Continue with Google
+            {t('continueWithGoogle')}
           </Button>
 
           <p className="mt-4 text-center text-sm text-gray-500">
-            Already have an account?{' '}
+            {t('hasAccount')}{' '}
             <Link href="/login" className="text-indigo-600 hover:underline">
-              Sign in
+              {t('signInLink')}
             </Link>
           </p>
         </CardContent>

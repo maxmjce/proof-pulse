@@ -1,8 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
+import { Link } from '@/i18n/navigation';
+import { useRouter } from '@/i18n/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,6 +15,7 @@ export default function LoginPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const t = useTranslations('auth');
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
@@ -53,33 +55,33 @@ export default function LoginPage() {
           <Link href="/" className="text-2xl font-bold text-indigo-600 mb-2 block">
             ProofPulse
           </Link>
-          <CardTitle>Welcome back</CardTitle>
+          <CardTitle>{t('welcomeBack')}</CardTitle>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleLogin} className="space-y-4">
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-                Email
+                {t('email')}
               </label>
               <Input
                 id="email"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@example.com"
+                placeholder={t('emailPlaceholder')}
                 required
               />
             </div>
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
-                Password
+                {t('password')}
               </label>
               <Input
                 id="password"
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="Your password"
+                placeholder={t('passwordPlaceholder')}
                 required
               />
             </div>
@@ -87,7 +89,7 @@ export default function LoginPage() {
               <p className="text-sm text-red-600">{error}</p>
             )}
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? 'Signing in...' : 'Sign in'}
+              {loading ? t('signingIn') : t('signIn')}
             </Button>
           </form>
 
@@ -98,13 +100,13 @@ export default function LoginPage() {
           </div>
 
           <Button variant="outline" className="w-full" onClick={handleGoogleLogin}>
-            Continue with Google
+            {t('continueWithGoogle')}
           </Button>
 
           <p className="mt-4 text-center text-sm text-gray-500">
-            Don&apos;t have an account?{' '}
+            {t('noAccount')}{' '}
             <Link href="/signup" className="text-indigo-600 hover:underline">
-              Sign up
+              {t('signUpLink')}
             </Link>
           </p>
         </CardContent>

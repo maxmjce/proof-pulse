@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -8,14 +9,17 @@ import { Badge } from '@/components/ui/badge';
 import type { Widget, WidgetType } from '@/types';
 import { getEmbedCode } from '@/lib/utils';
 
-const WIDGET_TYPES: { type: WidgetType; label: string; desc: string }[] = [
-  { type: 'carousel', label: 'Carousel', desc: 'Auto-rotating testimonial slider' },
-  { type: 'wall', label: 'Wall', desc: 'Masonry grid of testimonials' },
-  { type: 'badge', label: 'Badge', desc: 'Compact rating badge with count' },
-  { type: 'minimal', label: 'Minimal', desc: 'Single featured testimonial' },
+const WIDGET_TYPES: { type: WidgetType; labelKey: string; descKey: string }[] = [
+  { type: 'carousel', labelKey: 'carousel', descKey: 'carouselDesc' },
+  { type: 'wall', labelKey: 'wall', descKey: 'wallDesc' },
+  { type: 'badge', labelKey: 'badge', descKey: 'badgeDesc' },
+  { type: 'minimal', labelKey: 'minimal', descKey: 'minimalDesc' },
 ];
 
 export default function WidgetsPage() {
+  const t = useTranslations('widgets');
+  const tc = useTranslations('common');
+
   const [widgets, setWidgets] = useState<Widget[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreator, setShowCreator] = useState(false);
@@ -91,7 +95,7 @@ export default function WidgetsPage() {
   }
 
   async function handleDelete(id: string) {
-    if (!window.confirm('Are you sure you want to delete this widget? This cannot be undone.')) return;
+    if (!window.confirm(t('deleteConfirm'))) return;
     const res = await fetch(`/api/widgets/${id}`, { method: 'DELETE' });
     if (res.ok) {
       setWidgets((prev) => prev.filter((w) => w.id !== id));
@@ -126,34 +130,34 @@ export default function WidgetsPage() {
     <div>
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-2xl font-bold">Widgets</h1>
-          <p className="text-gray-500">Create embeddable widgets for your website</p>
+          <h1 className="text-2xl font-bold">{t('title')}</h1>
+          <p className="text-gray-500">{t('subtitle')}</p>
         </div>
-        <Button onClick={() => setShowCreator(true)}>Create Widget</Button>
+        <Button onClick={() => setShowCreator(true)}>{t('createWidget')}</Button>
       </div>
 
       {/* Widget Creator */}
       {showCreator && (
         <Card className="mb-8">
           <CardHeader>
-            <CardTitle>Create Widget</CardTitle>
-            <CardDescription>Configure how your testimonials will be displayed</CardDescription>
+            <CardTitle>{t('createWidget')}</CardTitle>
+            <CardDescription>{t('configureDisplay')}</CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleCreate} className="space-y-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Widget Name *</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('widgetName')} *</label>
                 <Input
                   value={widgetName}
                   onChange={(e) => setWidgetName(e.target.value)}
-                  placeholder="e.g., Homepage Widget, Footer Badge"
+                  placeholder={t('widgetNamePlaceholder')}
                   required
                 />
               </div>
 
               {/* Widget Type */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Widget Type</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">{t('widgetType')}</label>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                   {WIDGET_TYPES.map((wt) => (
                     <button
@@ -166,8 +170,8 @@ export default function WidgetsPage() {
                           : 'border-gray-200 hover:border-gray-300'
                       }`}
                     >
-                      <p className="font-medium text-sm">{wt.label}</p>
-                      <p className="text-xs text-gray-500">{wt.desc}</p>
+                      <p className="font-medium text-sm">{t(wt.labelKey)}</p>
+                      <p className="text-xs text-gray-500">{t(wt.descKey)}</p>
                     </button>
                   ))}
                 </div>
@@ -176,7 +180,7 @@ export default function WidgetsPage() {
               {/* Config */}
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Primary Color</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('primaryColor')}</label>
                   <div className="flex gap-2 items-center">
                     <input
                       type="color"
@@ -188,7 +192,7 @@ export default function WidgetsPage() {
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Background Color</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('backgroundColor')}</label>
                   <div className="flex gap-2 items-center">
                     <input
                       type="color"
@@ -200,7 +204,7 @@ export default function WidgetsPage() {
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Text Color</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('textColor')}</label>
                   <div className="flex gap-2 items-center">
                     <input
                       type="color"
@@ -212,7 +216,7 @@ export default function WidgetsPage() {
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Border Radius</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('borderRadius')}</label>
                   <Input
                     type="number"
                     value={borderRadius}
@@ -222,7 +226,7 @@ export default function WidgetsPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Columns</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('columns')}</label>
                   <Input
                     type="number"
                     value={columns}
@@ -232,7 +236,7 @@ export default function WidgetsPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Max Testimonials</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('maxTestimonials')}</label>
                   <Input
                     type="number"
                     value={maxTestimonials}
@@ -251,7 +255,7 @@ export default function WidgetsPage() {
                     onChange={(e) => setShowRating(e.target.checked)}
                     className="rounded"
                   />
-                  Show ratings
+                  {t('showRatings')}
                 </label>
                 <label className="flex items-center gap-2 text-sm">
                   <input
@@ -260,7 +264,7 @@ export default function WidgetsPage() {
                     onChange={(e) => setShowBranding(e.target.checked)}
                     className="rounded"
                   />
-                  Show ProofPulse branding
+                  {t('showBranding')}
                 </label>
               </div>
 
@@ -268,10 +272,10 @@ export default function WidgetsPage() {
 
               <div className="flex gap-2">
                 <Button type="submit" disabled={creating}>
-                  {creating ? 'Creating...' : 'Create Widget'}
+                  {creating ? t('creating') : t('createWidget')}
                 </Button>
                 <Button type="button" variant="outline" onClick={() => { setShowCreator(false); setCreateError(''); }}>
-                  Cancel
+                  {tc('cancel')}
                 </Button>
               </div>
             </form>
@@ -286,16 +290,16 @@ export default function WidgetsPage() {
             <div className="flex items-center justify-between">
               <div>
                 <CardTitle>{selectedWidget.name}</CardTitle>
-                <CardDescription>Embed code and preview</CardDescription>
+                <CardDescription>{t('embedCode')} &amp; {t('preview')}</CardDescription>
               </div>
               <Button variant="ghost" size="sm" onClick={() => setSelectedWidget(null)}>
-                Close
+                {tc('close')}
               </Button>
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Embed Code</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">{t('embedCodeLabel')}</label>
               <div className="relative">
                 <pre className="bg-gray-900 text-gray-100 p-4 rounded-lg text-sm overflow-x-auto">
                   {getEmbedCode(selectedWidget.id)}
@@ -306,12 +310,12 @@ export default function WidgetsPage() {
                   className="absolute top-2 right-2"
                   onClick={() => copyToClipboard(getEmbedCode(selectedWidget.id), selectedWidget.id)}
                 >
-                  {copied === selectedWidget.id ? 'Copied!' : 'Copy'}
+                  {copied === selectedWidget.id ? tc('copied') : tc('copy')}
                 </Button>
               </div>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Preview</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">{t('preview')}</label>
               <div className="border border-gray-200 rounded-lg overflow-hidden">
                 <iframe
                   src={`/embed/${selectedWidget.id}`}
@@ -329,11 +333,9 @@ export default function WidgetsPage() {
       {widgets.length === 0 && !showCreator ? (
         <Card>
           <CardContent className="p-12 text-center">
-            <h3 className="text-lg font-semibold mb-2">No widgets yet</h3>
-            <p className="text-gray-500 mb-4">
-              Create a widget to display your testimonials on any website with a simple embed code.
-            </p>
-            <Button onClick={() => setShowCreator(true)}>Create Your First Widget</Button>
+            <h3 className="text-lg font-semibold mb-2">{t('noWidgets')}</h3>
+            <p className="text-gray-500 mb-4">{t('noWidgetsDesc')}</p>
+            <Button onClick={() => setShowCreator(true)}>{t('createFirstWidget')}</Button>
           </CardContent>
         </Card>
       ) : (
@@ -344,24 +346,24 @@ export default function WidgetsPage() {
                 <div className="flex items-start justify-between">
                   <div>
                     <CardTitle className="text-base">{widget.name}</CardTitle>
-                    <CardDescription className="capitalize">{widget.type} widget</CardDescription>
+                    <CardDescription className="capitalize">{widget.type} {t('widget')}</CardDescription>
                   </div>
                   <Badge variant={widget.is_active ? 'success' : 'secondary'}>
-                    {widget.is_active ? 'Active' : 'Inactive'}
+                    {widget.is_active ? t('active') : t('inactive')}
                   </Badge>
                 </div>
               </CardHeader>
               <CardContent>
                 <div className="flex items-center gap-2 text-xs text-gray-400 mb-3">
-                  <span>Columns: {widget.config?.columns || 3}</span>
+                  <span>{t('columns')}: {widget.config?.columns || 3}</span>
                   <span>Max: {widget.config?.max_testimonials || 9}</span>
                 </div>
                 <div className="flex gap-2">
                   <Button size="sm" variant="outline" onClick={() => setSelectedWidget(widget)}>
-                    Embed Code
+                    {t('embedCode')}
                   </Button>
                   <Button size="sm" variant="ghost" onClick={() => handleToggleActive(widget.id, widget.is_active)}>
-                    {widget.is_active ? 'Deactivate' : 'Activate'}
+                    {widget.is_active ? t('deactivate') : t('activate')}
                   </Button>
                   <Button
                     size="sm"
@@ -369,7 +371,7 @@ export default function WidgetsPage() {
                     className="text-red-600 hover:text-red-700 hover:bg-red-50"
                     onClick={() => handleDelete(widget.id)}
                   >
-                    Delete
+                    {tc('delete')}
                   </Button>
                 </div>
               </CardContent>
@@ -381,13 +383,13 @@ export default function WidgetsPage() {
       {/* Widget Types Reference */}
       {widgets.length > 0 && (
         <div className="mt-8">
-          <h2 className="text-lg font-semibold mb-4">Widget Types</h2>
+          <h2 className="text-lg font-semibold mb-4">{t('widgetTypes')}</h2>
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
             {WIDGET_TYPES.map((w) => (
               <Card key={w.type}>
                 <CardHeader>
-                  <CardTitle className="text-base">{w.label}</CardTitle>
-                  <CardDescription>{w.desc}</CardDescription>
+                  <CardTitle className="text-base">{t(w.labelKey)}</CardTitle>
+                  <CardDescription>{t(w.descKey)}</CardDescription>
                 </CardHeader>
               </Card>
             ))}

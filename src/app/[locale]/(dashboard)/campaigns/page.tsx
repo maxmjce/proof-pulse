@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { useTranslations, useLocale } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -16,6 +17,10 @@ const statusBadgeVariant = {
 };
 
 export default function CampaignsPage() {
+  const t = useTranslations('campaigns');
+  const tc = useTranslations('common');
+  const locale = useLocale();
+
   const [campaigns, setCampaigns] = useState<(Campaign & { forms?: { name: string; slug: string } | null })[]>([]);
   const [forms, setForms] = useState<Form[]>([]);
   const [loading, setLoading] = useState(true);
@@ -26,6 +31,8 @@ export default function CampaignsPage() {
   const [name, setName] = useState('');
   const [formId, setFormId] = useState('');
   const [subject, setSubject] = useState('');
+  // Default body is intentionally kept in English — this is email content sent to customers,
+  // not UI text, so it should not vary with the dashboard locale.
   const [body, setBody] = useState('We\'d love to hear about your experience! Please take a moment to share your feedback.');
   const [emails, setEmails] = useState('');
   const [creating, setCreating] = useState(false);
@@ -67,7 +74,7 @@ export default function CampaignsPage() {
       .filter((e) => e.length > 0);
 
     if (emailList.length === 0) {
-      setError('Please add at least one recipient email.');
+      setError(t('atLeastOneEmail'));
       setCreating(false);
       return;
     }
@@ -87,6 +94,7 @@ export default function CampaignsPage() {
     if (res.ok) {
       setName('');
       setSubject('');
+      // Reset to the same English default — see comment above on body state.
       setBody('We\'d love to hear about your experience! Please take a moment to share your feedback.');
       setEmails('');
       setShowCreator(false);
@@ -99,25 +107,25 @@ export default function CampaignsPage() {
   }
 
   async function handleSend(campaignId: string) {
-    if (!window.confirm('Send this campaign now? Emails will be sent to all recipients immediately.')) return;
+    if (!window.confirm(t('sendConfirm'))) return;
     setSending(campaignId);
     const res = await fetch(`/api/campaigns/${campaignId}/send`, { method: 'POST' });
     const json = await res.json();
     if (res.ok) {
       fetchCampaigns();
       if (json.failed > 0) {
-        alert(`Sent ${json.sent}/${json.total} emails. ${json.failed} failed.\n${json.errors?.join('\n') || ''}`);
+        alert(t('sendPartial', { sent: json.sent, total: json.total, failed: json.failed }));
       } else {
-        alert(`Successfully sent ${json.sent} email${json.sent !== 1 ? 's' : ''}!`);
+        alert(t('sendSuccess', { sent: json.sent }));
       }
     } else {
-      alert(`Failed to send: ${json.error || 'Unknown error'}`);
+      alert(t('sendFailed', { error: json.error || 'Unknown error' }));
     }
     setSending(null);
   }
 
   async function handleDelete(id: string) {
-    if (!window.confirm('Are you sure you want to delete this campaign? This cannot be undone.')) return;
+    if (!window.confirm(t('deleteConfirm'))) return;
     const res = await fetch(`/api/campaigns/${id}`, { method: 'DELETE' });
     if (res.ok) {
       setCampaigns((prev) => prev.filter((c) => c.id !== id));
@@ -132,50 +140,48 @@ export default function CampaignsPage() {
     <div>
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-2xl font-bold">Email Campaigns</h1>
-          <p className="text-gray-500">Request testimonials via automated emails</p>
+          <h1 className="text-2xl font-bold">{t('title')}</h1>
+          <p className="text-gray-500">{t('subtitle')}</p>
         </div>
-        <Button onClick={() => setShowCreator(true)}>Create Campaign</Button>
+        <Button onClick={() => setShowCreator(true)}>{t('createCampaign')}</Button>
       </div>
 
       {/* Campaign Creator */}
       {showCreator && (
         <Card className="mb-8">
           <CardHeader>
-            <CardTitle>Create Campaign</CardTitle>
-            <CardDescription>Send emails requesting testimonials from your customers</CardDescription>
+            <CardTitle>{t('createCampaign')}</CardTitle>
+            <CardDescription>{t('subtitle')}</CardDescription>
           </CardHeader>
           <CardContent>
             {forms.length === 0 ? (
               <div className="text-center py-6">
-                <p className="text-gray-500 mb-4">
-                  You need to create a collection form first before you can send a campaign.
-                </p>
+                <p className="text-gray-500 mb-4">{t('needFormFirst')}</p>
                 <Button asChild variant="outline">
-                  <a href="/testimonials?tab=forms&action=create">Create a Form</a>
+                  <a href="/testimonials?tab=forms&action=create">{t('createFormLink')}</a>
                 </Button>
               </div>
             ) : (
               <form onSubmit={handleCreate} className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Campaign Name *</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('campaignName')} *</label>
                   <Input
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    placeholder="e.g., Post-Purchase Follow-up"
+                    placeholder={t('campaignNamePlaceholder')}
                     required
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Collection Form *</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('collectionForm')} *</label>
                   <select
                     value={formId}
                     onChange={(e) => setFormId(e.target.value)}
                     required
                     className="flex h-10 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                   >
-                    <option value="">Select a form...</option>
+                    <option value="">{t('selectForm')}</option>
                     {forms.map((f) => (
                       <option key={f.id} value={f.id}>{f.name}</option>
                     ))}
@@ -183,50 +189,46 @@ export default function CampaignsPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Email Subject *</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('emailSubject')} *</label>
                   <Input
                     value={subject}
                     onChange={(e) => setSubject(e.target.value)}
-                    placeholder="e.g., We'd love your feedback!"
+                    placeholder={t('emailSubjectPlaceholder')}
                     required
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Email Body *</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('emailBody')} *</label>
                   <Textarea
                     value={body}
                     onChange={(e) => setBody(e.target.value)}
                     rows={5}
                     required
                   />
-                  <p className="text-xs text-gray-400 mt-1">
-                    A &quot;Share Your Testimonial&quot; button will be added automatically.
-                  </p>
+                  <p className="text-xs text-gray-400 mt-1">{t('emailBodyHint')}</p>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Recipient Emails *</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('recipientEmails')} *</label>
                   <Textarea
                     value={emails}
                     onChange={(e) => setEmails(e.target.value)}
-                    placeholder="one@example.com, two@example.com&#10;Or one email per line"
+                    placeholder={t('recipientEmailsPlaceholder')}
                     rows={4}
                     required
                   />
-                  <p className="text-xs text-gray-400 mt-1">
-                    Separate emails with commas or new lines.
-                  </p>
+                  <p className="text-xs text-gray-400 mt-1">{t('recipientEmailsHint')}</p>
                 </div>
 
                 {error && <p className="text-sm text-red-600">{error}</p>}
 
                 <div className="flex gap-2">
                   <Button type="submit" disabled={creating}>
-                    {creating ? 'Creating...' : 'Create Draft'}
+                    {creating ? t('creating') : t('createDraft')}
                   </Button>
                   <Button type="button" variant="outline" onClick={() => setShowCreator(false)}>
-                    Cancel
+                    {tc('cancel')}
                   </Button>
                 </div>
               </form>
@@ -239,11 +241,9 @@ export default function CampaignsPage() {
       {campaigns.length === 0 && !showCreator ? (
         <Card>
           <CardContent className="p-12 text-center">
-            <h3 className="text-lg font-semibold mb-2">No campaigns yet</h3>
-            <p className="text-gray-500 mb-4">
-              Create an email campaign to automatically request testimonials from your customers.
-            </p>
-            <Button onClick={() => setShowCreator(true)}>Create Your First Campaign</Button>
+            <h3 className="text-lg font-semibold mb-2">{t('noCampaigns')}</h3>
+            <p className="text-gray-500 mb-4">{t('noCampaignsDesc')}</p>
+            <Button onClick={() => setShowCreator(true)}>{t('createFirstCampaign')}</Button>
           </CardContent>
         </Card>
       ) : (
@@ -255,22 +255,26 @@ export default function CampaignsPage() {
                   <div>
                     <CardTitle className="text-base">{campaign.name}</CardTitle>
                     <CardDescription>
-                      {campaign.recipient_emails.length} recipient{campaign.recipient_emails.length !== 1 ? 's' : ''}
-                      {campaign.forms && <> &middot; Form: {campaign.forms.name}</>}
+                      {t('recipients', { count: campaign.recipient_emails.length })}
+                      {campaign.forms && <> &middot; {t('form', { name: campaign.forms.name })}</>}
                     </CardDescription>
                   </div>
                   <Badge variant={statusBadgeVariant[campaign.status]}>
-                    {campaign.status}
+                    {campaign.status === 'draft'
+                      ? t('draft')
+                      : campaign.status === 'scheduled'
+                        ? t('scheduled')
+                        : t('sentStatus')}
                   </Badge>
                 </div>
               </CardHeader>
               <CardContent>
                 <p className="text-sm text-gray-600 mb-1">
-                  <span className="font-medium">Subject:</span> {campaign.subject}
+                  <span className="font-medium">{t('subject')}:</span> {campaign.subject}
                 </p>
                 <p className="text-xs text-gray-400 mb-4">
-                  Created {formatDate(campaign.created_at)}
-                  {campaign.sent_at && <> &middot; Sent {formatDate(campaign.sent_at)}</>}
+                  {t('created', { date: formatDate(campaign.created_at, locale) })}
+                  {campaign.sent_at && <> &middot; {t('sent', { date: formatDate(campaign.sent_at, locale) })}</>}
                 </p>
                 <div className="flex gap-2">
                   {campaign.status === 'draft' && (
@@ -279,7 +283,7 @@ export default function CampaignsPage() {
                       onClick={() => handleSend(campaign.id)}
                       disabled={sending === campaign.id}
                     >
-                      {sending === campaign.id ? 'Sending...' : 'Send Now'}
+                      {sending === campaign.id ? t('sending') : t('sendNow')}
                     </Button>
                   )}
                   <Button
@@ -288,7 +292,7 @@ export default function CampaignsPage() {
                     className="text-red-600 hover:text-red-700 hover:bg-red-50"
                     onClick={() => handleDelete(campaign.id)}
                   >
-                    Delete
+                    {tc('delete')}
                   </Button>
                 </div>
               </CardContent>

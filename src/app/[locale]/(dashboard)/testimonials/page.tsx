@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -33,7 +34,15 @@ const statusBadgeVariant = {
   rejected: 'destructive' as const,
 };
 
-function TagInput({ tags, onUpdate }: { tags: string[]; onUpdate: (tags: string[]) => void }) {
+function TagInput({
+  tags,
+  onUpdate,
+  addTagPlaceholder,
+}: {
+  tags: string[];
+  onUpdate: (tags: string[]) => void;
+  addTagPlaceholder: string;
+}) {
   const [input, setInput] = useState('');
 
   function handleAdd(e: React.KeyboardEvent) {
@@ -60,8 +69,9 @@ function TagInput({ tags, onUpdate }: { tags: string[]; onUpdate: (tags: string[
             type="button"
             onClick={() => handleRemove(tag)}
             className="hover:text-indigo-900"
+            aria-label={`Remove tag ${tag}`}
           >
-            x
+            &times;
           </button>
         </span>
       ))}
@@ -70,7 +80,7 @@ function TagInput({ tags, onUpdate }: { tags: string[]; onUpdate: (tags: string[
         value={input}
         onChange={(e) => setInput(e.target.value)}
         onKeyDown={handleAdd}
-        placeholder="Add tag..."
+        placeholder={addTagPlaceholder}
         className="text-xs border-none outline-none bg-transparent w-20 placeholder:text-gray-400"
       />
     </div>
@@ -78,6 +88,9 @@ function TagInput({ tags, onUpdate }: { tags: string[]; onUpdate: (tags: string[
 }
 
 export default function TestimonialsPage() {
+  const t = useTranslations('testimonials');
+  const tc = useTranslations('common');
+
   const [tab, setTab] = useState<'testimonials' | 'forms'>('testimonials');
   const [filter, setFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all');
   const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
@@ -128,7 +141,7 @@ export default function TestimonialsPage() {
     });
     if (res.ok) {
       setTestimonials((prev) =>
-        prev.map((t) => (t.id === id ? { ...t, status } : t))
+        prev.map((item) => (item.id === id ? { ...item, status } : item))
       );
     }
   }
@@ -141,7 +154,7 @@ export default function TestimonialsPage() {
     });
     if (res.ok) {
       setTestimonials((prev) =>
-        prev.map((t) => (t.id === id ? { ...t, is_featured: !isFeatured } : t))
+        prev.map((item) => (item.id === id ? { ...item, is_featured: !isFeatured } : item))
       );
     }
   }
@@ -154,16 +167,16 @@ export default function TestimonialsPage() {
     });
     if (res.ok) {
       setTestimonials((prev) =>
-        prev.map((t) => (t.id === id ? { ...t, tags } : t))
+        prev.map((item) => (item.id === id ? { ...item, tags } : item))
       );
     }
   }
 
   async function handleDeleteTestimonial(id: string) {
-    if (!window.confirm('Are you sure you want to delete this testimonial? This cannot be undone.')) return;
+    if (!window.confirm(t('deleteConfirm'))) return;
     const res = await fetch(`/api/testimonials/${id}`, { method: 'DELETE' });
     if (res.ok) {
-      setTestimonials((prev) => prev.filter((t) => t.id !== id));
+      setTestimonials((prev) => prev.filter((item) => item.id !== id));
     }
   }
 
@@ -196,7 +209,7 @@ export default function TestimonialsPage() {
   }
 
   async function handleDeleteForm(id: string) {
-    if (!window.confirm('Are you sure you want to delete this form? This cannot be undone.')) return;
+    if (!window.confirm(t('deleteFormConfirm'))) return;
     const res = await fetch(`/api/forms/${id}`, { method: 'DELETE' });
     if (res.ok) {
       setForms((prev) => prev.filter((f) => f.id !== id));
@@ -218,7 +231,7 @@ export default function TestimonialsPage() {
 
   const filtered = filter === 'all'
     ? testimonials
-    : testimonials.filter((t) => t.status === filter);
+    : testimonials.filter((item) => item.status === filter);
 
   if (loading) {
     return <div className="text-center py-12 text-gray-500">Loading...</div>;
@@ -228,8 +241,8 @@ export default function TestimonialsPage() {
     <div>
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-2xl font-bold">Testimonials</h1>
-          <p className="text-gray-500">{testimonials.length} total testimonials</p>
+          <h1 className="text-2xl font-bold">{t('title')}</h1>
+          <p className="text-gray-500">{t('totalCount', { count: testimonials.length })}</p>
         </div>
       </div>
 
@@ -243,7 +256,7 @@ export default function TestimonialsPage() {
               : 'border-transparent text-gray-500 hover:text-gray-700'
           }`}
         >
-          Testimonials ({testimonials.length})
+          {t('tab', { count: testimonials.length })}
         </button>
         <button
           onClick={() => setTab('forms')}
@@ -253,7 +266,7 @@ export default function TestimonialsPage() {
               : 'border-transparent text-gray-500 hover:text-gray-700'
           }`}
         >
-          Collection Forms ({forms.length})
+          {t('formsTab', { count: forms.length })}
         </button>
       </div>
 
@@ -268,10 +281,10 @@ export default function TestimonialsPage() {
                 size="sm"
                 onClick={() => setFilter(f)}
               >
-                {f.charAt(0).toUpperCase() + f.slice(1)}
+                {t(f)}
                 {f !== 'all' && (
                   <span className="ml-1 text-xs opacity-70">
-                    ({testimonials.filter((t) => t.status === f).length})
+                    ({testimonials.filter((item) => item.status === f).length})
                   </span>
                 )}
               </Button>
@@ -283,16 +296,16 @@ export default function TestimonialsPage() {
             <Card>
               <CardContent className="p-12 text-center">
                 <h3 className="text-lg font-semibold mb-2">
-                  {testimonials.length === 0 ? 'No testimonials yet' : 'No matching testimonials'}
+                  {testimonials.length === 0 ? t('noTestimonials') : t('noMatching')}
                 </h3>
                 <p className="text-gray-500 mb-4">
                   {testimonials.length === 0
-                    ? 'Create a collection form and share the link with your customers.'
-                    : 'Try changing your filter.'}
+                    ? t('noTestimonialsDesc')
+                    : t('noMatchingDesc')}
                 </p>
                 {testimonials.length === 0 && (
                   <Button onClick={() => { setTab('forms'); setShowFormCreator(true); }}>
-                    Create Your First Form
+                    {t('createFirstForm')}
                   </Button>
                 )}
               </CardContent>
@@ -312,10 +325,10 @@ export default function TestimonialsPage() {
                       </div>
                       <div className="flex items-center gap-2">
                         <Badge variant={statusBadgeVariant[testimonial.status]}>
-                          {testimonial.status}
+                          {t(testimonial.status)}
                         </Badge>
                         {testimonial.is_featured && (
-                          <Badge>Featured</Badge>
+                          <Badge>{t('featured')}</Badge>
                         )}
                       </div>
                     </div>
@@ -328,6 +341,7 @@ export default function TestimonialsPage() {
                     <TagInput
                       tags={testimonial.tags || []}
                       onUpdate={(tags) => handleUpdateTags(testimonial.id, tags)}
+                      addTagPlaceholder={t('addTag')}
                     />
 
                     <div className="mt-4 flex gap-2">
@@ -337,7 +351,7 @@ export default function TestimonialsPage() {
                           variant="outline"
                           onClick={() => handleStatusChange(testimonial.id, 'approved')}
                         >
-                          Approve
+                          {t('approve')}
                         </Button>
                       )}
                       {testimonial.status !== 'rejected' && (
@@ -346,7 +360,7 @@ export default function TestimonialsPage() {
                           variant="outline"
                           onClick={() => handleStatusChange(testimonial.id, 'rejected')}
                         >
-                          Reject
+                          {t('reject')}
                         </Button>
                       )}
                       <Button
@@ -354,7 +368,7 @@ export default function TestimonialsPage() {
                         variant="ghost"
                         onClick={() => handleToggleFeatured(testimonial.id, testimonial.is_featured)}
                       >
-                        {testimonial.is_featured ? 'Unfeature' : 'Feature'}
+                        {testimonial.is_featured ? t('unfeature') : t('feature')}
                       </Button>
                       <Button
                         size="sm"
@@ -362,7 +376,7 @@ export default function TestimonialsPage() {
                         className="text-red-600 hover:text-red-700 hover:bg-red-50"
                         onClick={() => handleDeleteTestimonial(testimonial.id)}
                       >
-                        Delete
+                        {tc('delete')}
                       </Button>
                     </div>
                   </CardContent>
@@ -376,70 +390,70 @@ export default function TestimonialsPage() {
       {tab === 'forms' && (
         <>
           <div className="flex justify-end mb-6">
-            <Button onClick={() => setShowFormCreator(true)}>Create Form</Button>
+            <Button onClick={() => setShowFormCreator(true)}>{t('createForm')}</Button>
           </div>
 
           {/* Form Creator */}
           {showFormCreator && (
             <Card className="mb-6">
               <CardHeader>
-                <CardTitle>Create Collection Form</CardTitle>
+                <CardTitle>{t('createForm')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <form onSubmit={handleCreateForm} className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Form Name *
+                      {t('formName')} *
                     </label>
                     <Input
                       value={formName}
                       onChange={(e) => setFormName(e.target.value)}
-                      placeholder="e.g., After Purchase, Project Complete"
+                      placeholder={t('formNamePlaceholder')}
                       required
                     />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Page Title
+                      {t('pageTitle')}
                     </label>
                     <Input
                       value={formTitle}
                       onChange={(e) => setFormTitle(e.target.value)}
-                      placeholder="Heading shown to the reviewer"
+                      placeholder={t('pageTitlePlaceholder')}
                     />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Description
+                      {t('description')}
                     </label>
                     <Textarea
                       value={formDescription}
                       onChange={(e) => setFormDescription(e.target.value)}
-                      placeholder="Instructions or context for the reviewer"
+                      placeholder={t('descriptionPlaceholder')}
                       rows={3}
                     />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Thank You Message
+                      {t('thankYouMessage')}
                     </label>
                     <Input
                       value={formThankYou}
                       onChange={(e) => setFormThankYou(e.target.value)}
-                      placeholder="Message shown after submission"
+                      placeholder={t('thankYouPlaceholder')}
                     />
                   </div>
                   {formError && <p className="text-sm text-red-600">{formError}</p>}
                   <div className="flex gap-2">
                     <Button type="submit" disabled={creating}>
-                      {creating ? 'Creating...' : 'Create Form'}
+                      {creating ? t('creatingForm') : t('createForm')}
                     </Button>
                     <Button
                       type="button"
                       variant="outline"
                       onClick={() => { setShowFormCreator(false); setFormError(''); }}
                     >
-                      Cancel
+                      {tc('cancel')}
                     </Button>
                   </div>
                 </form>
@@ -451,11 +465,9 @@ export default function TestimonialsPage() {
           {forms.length === 0 && !showFormCreator ? (
             <Card>
               <CardContent className="p-12 text-center">
-                <h3 className="text-lg font-semibold mb-2">No forms yet</h3>
-                <p className="text-gray-500 mb-4">
-                  Create a collection form and share the link with your customers to start collecting testimonials.
-                </p>
-                <Button onClick={() => setShowFormCreator(true)}>Create Your First Form</Button>
+                <h3 className="text-lg font-semibold mb-2">{t('noForms')}</h3>
+                <p className="text-gray-500 mb-4">{t('noFormsDesc')}</p>
+                <Button onClick={() => setShowFormCreator(true)}>{t('createFirstForm')}</Button>
               </CardContent>
             </Card>
           ) : (
@@ -469,13 +481,13 @@ export default function TestimonialsPage() {
                         <p className="text-sm text-gray-500 mt-1">{form.title}</p>
                       </div>
                       <Badge variant={form.is_active ? 'success' : 'secondary'}>
-                        {form.is_active ? 'Active' : 'Inactive'}
+                        {form.is_active ? t('active') : t('inactive')}
                       </Badge>
                     </div>
                   </CardHeader>
                   <CardContent>
                     <div className="flex items-center gap-2 text-sm text-gray-500 mb-4">
-                      <span>Link:</span>
+                      <span>{t('link')}:</span>
                       <code className="bg-gray-100 px-2 py-0.5 rounded text-xs">
                         {window.location.origin}/collect/{form.slug}
                       </code>
@@ -484,7 +496,7 @@ export default function TestimonialsPage() {
                         variant="ghost"
                         onClick={() => navigator.clipboard.writeText(`${window.location.origin}/collect/${form.slug}`)}
                       >
-                        Copy
+                        {tc('copy')}
                       </Button>
                     </div>
                     <div className="flex gap-2">
@@ -493,7 +505,7 @@ export default function TestimonialsPage() {
                         variant="outline"
                         onClick={() => handleToggleFormActive(form.id, form.is_active)}
                       >
-                        {form.is_active ? 'Deactivate' : 'Activate'}
+                        {form.is_active ? t('deactivate') : t('activate')}
                       </Button>
                       <Button
                         size="sm"
@@ -501,7 +513,7 @@ export default function TestimonialsPage() {
                         className="text-red-600 hover:text-red-700 hover:bg-red-50"
                         onClick={() => handleDeleteForm(form.id)}
                       >
-                        Delete
+                        {tc('delete')}
                       </Button>
                     </div>
                   </CardContent>

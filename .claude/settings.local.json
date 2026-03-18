@@ -1,0 +1,26 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__filesystem__read_multiple_files",
+      "Bash(grep -E \"\\\\.\\(env|md\\)$|package.json\")",
+      "Bash(git add:*)",
+      "Bash(git reset:*)",
+      "Bash(grep -r \"TODO\\\\|FIXME\\\\|i18n\\\\|i18next\\\\|translation\" /c/Users/Max/projects/proof-pulse/src --include=*.ts --include=*.tsx)",
+      "mcp__filesystem__read_text_file",
+      "mcp__filesystem__directory_tree",
+      "Bash(grep -E \"middleware|\\\\.ts$|\\\\.tsx$\")",
+      "Bash(cd:*)",
+      "Bash(cp page.tsx \"[locale]/page.tsx\")",
+      "Bash(cp \"\\(auth\\)/login/page.tsx\" \"[locale]/\\(auth\\)/login/page.tsx\")",
+      "Bash(cp \"\\(auth\\)/signup/page.tsx\" \"[locale]/\\(auth\\)/signup/page.tsx\")",
+      "Bash(cp \"\\(auth\\)/callback/route.ts\" \"[locale]/\\(auth\\)/callback/route.ts\")",
+      "Bash(cp \"\\(dashboard\\)/layout.tsx\" \"[locale]/\\(dashboard\\)/layout.tsx\")",
+      "Bash(rm \"collect/[slug]/page.tsx\")",
+      "Bash(rmdir \"collect/[slug]\" \"collect\")"
+    ]
+  },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "supabase"
+  ]
+}

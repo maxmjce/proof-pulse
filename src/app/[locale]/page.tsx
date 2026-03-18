@@ -1,4 +1,5 @@
-import Link from 'next/link';
+import { Link } from '@/i18n/navigation';
+import { getTranslations } from 'next-intl/server';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { PRICING_TIERS } from '@/lib/constants';
@@ -20,28 +21,31 @@ function StarRating({ rating }: { rating: number }) {
   );
 }
 
-const DEMO_TESTIMONIALS = [
-  {
-    name: 'Sarah Chen',
-    title: 'Founder, DesignLab',
-    content: 'ProofPulse made it so easy to collect testimonials from our clients. We saw a 23% increase in conversions after adding the widget to our landing page.',
-    rating: 5,
-  },
-  {
-    name: 'Marcus Johnson',
-    title: 'Freelance Developer',
-    content: 'I used to manually ask for reviews via email. Now I just send a ProofPulse link and testimonials roll in. The embed widget looks amazing on my portfolio.',
-    rating: 5,
-  },
-  {
-    name: 'Emily Rodriguez',
-    title: 'Course Creator',
-    content: 'The automated email campaigns are a game-changer. After each course completion, students get a request and I get authentic testimonials without lifting a finger.',
-    rating: 5,
-  },
-];
+const PLAN_FEATURE_KEYS = {
+  free: ['freeTestimonials', 'freeForm', 'freeWidget', 'freeBranding', 'freeAnalytics'],
+  creator: ['creatorTestimonials', 'creatorForms', 'creatorWidgets', 'creatorBranding', 'creatorVideo', 'creatorCampaigns', 'creatorSupport'],
+  business: ['businessTestimonials', 'businessForms', 'businessWidgets', 'businessWhiteLabel', 'businessVideo', 'businessCampaigns', 'businessApi', 'businessSupport'],
+} as const;
 
-export default function HomePage() {
+export default async function HomePage() {
+  const t = await getTranslations('landing');
+  const tp = await getTranslations('pricing');
+
+  const DEMO_TESTIMONIALS = [
+    { name: t('demo1Name'), title: t('demo1Title'), content: t('demo1Content'), rating: 5 },
+    { name: t('demo2Name'), title: t('demo2Title'), content: t('demo2Content'), rating: 5 },
+    { name: t('demo3Name'), title: t('demo3Title'), content: t('demo3Content'), rating: 5 },
+  ];
+
+  const FEATURES = [
+    { title: t('shareableLinks'), desc: t('shareableLinksDesc') },
+    { title: t('embeddableWidgets'), desc: t('embeddableWidgetsDesc') },
+    { title: t('videoTestimonials'), desc: t('videoTestimonialsDesc') },
+    { title: t('emailCampaigns'), desc: t('emailCampaignsDesc') },
+    { title: t('approveManage'), desc: t('approveManageDesc') },
+    { title: t('customBranding'), desc: t('customBrandingDesc') },
+  ];
+
   return (
     <div className="min-h-screen">
       {/* Nav */}
@@ -50,10 +54,10 @@ export default function HomePage() {
           <span className="text-xl font-bold text-indigo-600">ProofPulse</span>
           <div className="flex items-center gap-4">
             <Link href="/login" className="text-sm text-gray-600 hover:text-gray-900">
-              Log in
+              {t('login')}
             </Link>
             <Button asChild size="sm">
-              <Link href="/signup">Get Started Free</Link>
+              <Link href="/signup">{t('getStarted')}</Link>
             </Button>
           </div>
         </div>
@@ -63,33 +67,33 @@ export default function HomePage() {
       <section className="py-24 px-4">
         <div className="max-w-3xl mx-auto text-center">
           <h1 className="text-5xl font-bold tracking-tight text-gray-900 mb-6">
-            Turn happy customers into
-            <span className="text-indigo-600"> your best marketing</span>
+            {t('heroTitle')}
+            <span className="text-indigo-600"> {t('heroTitleHighlight')}</span>
           </h1>
           <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
-            Collect testimonials with a simple link. Display them anywhere with a beautiful embed widget. Automate the whole thing with email campaigns.
+            {t('heroDescription')}
           </p>
           <div className="flex gap-4 justify-center">
             <Button asChild size="lg">
-              <Link href="/signup">Start Collecting Free</Link>
+              <Link href="/signup">{t('startCollecting')}</Link>
             </Button>
             <Button asChild variant="outline" size="lg">
-              <Link href="#pricing">See Pricing</Link>
+              <Link href="#pricing">{t('seePricing')}</Link>
             </Button>
           </div>
-          <p className="mt-4 text-sm text-gray-400">No credit card required. Free forever plan available.</p>
+          <p className="mt-4 text-sm text-gray-400">{t('noCreditCard')}</p>
         </div>
       </section>
 
       {/* How it works */}
       <section className="py-20 px-4 bg-gray-50">
         <div className="max-w-5xl mx-auto">
-          <h2 className="text-3xl font-bold text-center mb-12">How it works</h2>
+          <h2 className="text-3xl font-bold text-center mb-12">{t('howItWorks')}</h2>
           <div className="grid md:grid-cols-3 gap-8">
             {[
-              { step: '1', title: 'Create a form', desc: 'Build a testimonial collection form in seconds. Share the link with customers.' },
-              { step: '2', title: 'Collect testimonials', desc: 'Customers submit text, ratings, and video testimonials through your branded form.' },
-              { step: '3', title: 'Display everywhere', desc: 'Embed a beautiful widget on your site. Copy-paste one line of code.' },
+              { step: '1', title: t('step1Title'), desc: t('step1Desc') },
+              { step: '2', title: t('step2Title'), desc: t('step2Desc') },
+              { step: '3', title: t('step3Title'), desc: t('step3Desc') },
             ].map((item) => (
               <div key={item.step} className="text-center">
                 <div className="w-12 h-12 bg-indigo-600 text-white rounded-full flex items-center justify-center text-lg font-bold mx-auto mb-4">
@@ -106,17 +110,17 @@ export default function HomePage() {
       {/* Social Proof */}
       <section className="py-20 px-4">
         <div className="max-w-5xl mx-auto">
-          <h2 className="text-3xl font-bold text-center mb-4">Loved by businesses</h2>
-          <p className="text-center text-gray-600 mb-12">See what our users are saying</p>
+          <h2 className="text-3xl font-bold text-center mb-4">{t('lovedByBusinesses')}</h2>
+          <p className="text-center text-gray-600 mb-12">{t('seeWhatUsersSay')}</p>
           <div className="grid md:grid-cols-3 gap-6">
-            {DEMO_TESTIMONIALS.map((t) => (
-              <Card key={t.name}>
+            {DEMO_TESTIMONIALS.map((testimonial) => (
+              <Card key={testimonial.name}>
                 <CardContent className="p-6">
-                  <StarRating rating={t.rating} />
-                  <p className="mt-4 text-gray-700">&ldquo;{t.content}&rdquo;</p>
+                  <StarRating rating={testimonial.rating} />
+                  <p className="mt-4 text-gray-700">&ldquo;{testimonial.content}&rdquo;</p>
                   <div className="mt-4 pt-4 border-t border-gray-100">
-                    <p className="font-semibold text-sm">{t.name}</p>
-                    <p className="text-xs text-gray-500">{t.title}</p>
+                    <p className="font-semibold text-sm">{testimonial.name}</p>
+                    <p className="text-xs text-gray-500">{testimonial.title}</p>
                   </div>
                 </CardContent>
               </Card>
@@ -128,16 +132,9 @@ export default function HomePage() {
       {/* Features */}
       <section className="py-20 px-4 bg-gray-50">
         <div className="max-w-5xl mx-auto">
-          <h2 className="text-3xl font-bold text-center mb-12">Everything you need</h2>
+          <h2 className="text-3xl font-bold text-center mb-12">{t('everythingYouNeed')}</h2>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[
-              { title: 'Shareable Collection Links', desc: 'Create branded forms and share a simple link. No login required for reviewers.' },
-              { title: 'Embeddable Widgets', desc: 'Carousel, wall, or badge. Copy one line of code to display on any website.' },
-              { title: 'Video Testimonials', desc: 'Let customers record video testimonials directly from your collection form.' },
-              { title: 'Email Campaigns', desc: 'Automatically request testimonials after purchase or project completion.' },
-              { title: 'Approve & Manage', desc: 'Review, approve, tag, and feature your best testimonials from one dashboard.' },
-              { title: 'Custom Branding', desc: 'Match your brand colors, add your logo, remove ProofPulse branding on paid plans.' },
-            ].map((f) => (
+            {FEATURES.map((f) => (
               <Card key={f.title}>
                 <CardContent className="p-6">
                   <h3 className="font-semibold mb-2">{f.title}</h3>
@@ -152,29 +149,29 @@ export default function HomePage() {
       {/* Pricing */}
       <section id="pricing" className="py-20 px-4">
         <div className="max-w-5xl mx-auto">
-          <h2 className="text-3xl font-bold text-center mb-4">Simple pricing</h2>
-          <p className="text-center text-gray-600 mb-12">Start free. Upgrade when you need more.</p>
+          <h2 className="text-3xl font-bold text-center mb-4">{tp('simplePricing')}</h2>
+          <p className="text-center text-gray-600 mb-12">{tp('startFreeUpgrade')}</p>
           <div className="grid md:grid-cols-3 gap-6">
             {PRICING_TIERS.map((tier) => (
               <Card key={tier.plan} className={tier.plan === 'creator' ? 'border-indigo-600 border-2 relative' : ''}>
                 {tier.plan === 'creator' && (
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-indigo-600 text-white text-xs font-medium px-3 py-1 rounded-full">
-                    Most Popular
+                    {tp('mostPopular')}
                   </div>
                 )}
                 <CardContent className="p-6">
-                  <h3 className="text-lg font-semibold">{tier.name}</h3>
+                  <h3 className="text-lg font-semibold">{tp(tier.plan)}</h3>
                   <div className="mt-2 mb-6">
                     <span className="text-4xl font-bold">${tier.price}</span>
-                    {tier.price > 0 && <span className="text-gray-500">/month</span>}
+                    {tier.price > 0 && <span className="text-gray-500">{tp('perMonth')}</span>}
                   </div>
                   <ul className="space-y-3 mb-8">
-                    {tier.features.map((f) => (
-                      <li key={f} className="flex items-start gap-2 text-sm">
+                    {PLAN_FEATURE_KEYS[tier.plan as keyof typeof PLAN_FEATURE_KEYS].map((key) => (
+                      <li key={key} className="flex items-start gap-2 text-sm">
                         <svg className="w-4 h-4 text-green-500 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                         </svg>
-                        {f}
+                        {tp(`features.${key}`)}
                       </li>
                     ))}
                   </ul>
@@ -184,7 +181,7 @@ export default function HomePage() {
                     className="w-full"
                   >
                     <Link href="/signup">
-                      {tier.price === 0 ? 'Get Started Free' : 'Start Free Trial'}
+                      {tier.price === 0 ? t('getStarted') : t('startCollecting')}
                     </Link>
                   </Button>
                 </CardContent>
@@ -198,13 +195,13 @@ export default function HomePage() {
       <section className="py-20 px-4 bg-indigo-600">
         <div className="max-w-3xl mx-auto text-center">
           <h2 className="text-3xl font-bold text-white mb-4">
-            Ready to turn testimonials into conversions?
+            {t('readyToConvert')}
           </h2>
           <p className="text-indigo-100 mb-8">
-            Join thousands of businesses using ProofPulse to showcase their social proof.
+            {t('joinThousands')}
           </p>
           <Button asChild size="lg" variant="secondary">
-            <Link href="/signup">Start Collecting Free</Link>
+            <Link href="/signup">{t('startCollecting')}</Link>
           </Button>
         </div>
       </section>
@@ -213,7 +210,7 @@ export default function HomePage() {
       <footer className="py-8 px-4 border-t border-gray-100">
         <div className="max-w-6xl mx-auto flex items-center justify-between text-sm text-gray-500">
           <span>ProofPulse</span>
-          <span>Built with Next.js, Supabase & Stripe</span>
+          <span>{t('builtWith')}</span>
         </div>
       </footer>
     </div>

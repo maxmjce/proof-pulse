@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -26,6 +27,8 @@ interface FormConfig {
 
 export default function CollectPage() {
   const params = useParams();
+  const t = useTranslations('collect');
+  const tc = useTranslations('common');
   const [form, setForm] = useState<FormConfig | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
@@ -76,10 +79,10 @@ export default function CollectPage() {
       if (res.ok) {
         setSubmitted(true);
       } else {
-        setError('Something went wrong. Please try again.');
+        setError(t('submitError'));
       }
     } catch {
-      setError('Something went wrong. Please try again.');
+      setError(t('submitError'));
     }
     setSubmitting(false);
   }
@@ -97,8 +100,8 @@ export default function CollectPage() {
       <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
         <Card className="w-full max-w-lg text-center">
           <CardContent className="p-8">
-            <h2 className="text-2xl font-bold mb-2">Form Not Found</h2>
-            <p className="text-gray-600">This testimonial collection form doesn&apos;t exist or is no longer active.</p>
+            <h2 className="text-2xl font-bold mb-2">{t('formNotFound')}</h2>
+            <p className="text-gray-600">{t('formNotFoundDesc')}</p>
           </CardContent>
         </Card>
       </div>
@@ -117,7 +120,7 @@ export default function CollectPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
             </div>
-            <h2 className="text-2xl font-bold mb-2">Thank you!</h2>
+            <h2 className="text-2xl font-bold mb-2">{t('thankYou')}</h2>
             <p className="text-gray-600">{form.thank_you_message}</p>
           </CardContent>
         </Card>
@@ -144,7 +147,7 @@ export default function CollectPage() {
             {form.collect_rating && (
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  How would you rate your experience?
+                  {t('ratingLabel')}
                 </label>
                 <div className="flex gap-1">
                   {[1, 2, 3, 4, 5].map((star) => (
@@ -171,33 +174,33 @@ export default function CollectPage() {
 
             <div>
               <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
-                Your Name *
+                {t('yourName')} {t('required')}
               </label>
-              <Input id="name" name="name" placeholder="John Doe" required />
+              <Input id="name" name="name" placeholder={t('yourNamePlaceholder')} required />
             </div>
 
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-                Email
+                {t('emailLabel')}
               </label>
-              <Input id="email" name="email" type="email" placeholder="john@example.com" />
+              <Input id="email" name="email" type="email" placeholder={t('emailPlaceholder')} />
             </div>
 
             <div>
               <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">
-                Your Role / Company
+                {t('roleCompany')}
               </label>
-              <Input id="title" name="title" placeholder="CEO at Acme Inc." />
+              <Input id="title" name="title" placeholder={t('roleCompanyPlaceholder')} />
             </div>
 
             <div>
               <label htmlFor="content" className="block text-sm font-medium text-gray-700 mb-1">
-                Your Testimonial *
+                {t('yourTestimonial')} {t('required')}
               </label>
               <Textarea
                 id="content"
                 name="content"
-                placeholder="Tell us about your experience..."
+                placeholder={t('testimonialPlaceholder')}
                 rows={5}
                 required
               />
@@ -206,16 +209,16 @@ export default function CollectPage() {
             {form.collect_video && (
               <div>
                 <label htmlFor="video_url" className="block text-sm font-medium text-gray-700 mb-1">
-                  Video Testimonial URL
+                  {t('videoUrl')}
                 </label>
                 <Input
                   id="video_url"
                   name="video_url"
                   type="url"
-                  placeholder="https://youtube.com/watch?v=... or https://loom.com/share/..."
+                  placeholder={t('videoUrlPlaceholder')}
                 />
                 <p className="text-xs text-gray-400 mt-1">
-                  Paste a link to your video testimonial (YouTube, Loom, Vimeo, etc.)
+                  {t('videoUrlHint')}
                 </p>
               </div>
             )}
@@ -228,12 +231,12 @@ export default function CollectPage() {
               disabled={submitting}
               style={{ backgroundColor: primaryColor }}
             >
-              {submitting ? 'Submitting...' : 'Submit Testimonial'}
+              {submitting ? t('submitting') : t('submitTestimonial')}
             </Button>
           </form>
 
           <p className="mt-4 text-center text-xs text-gray-400">
-            Powered by ProofPulse
+            {tc('poweredBy')}
           </p>
         </CardContent>
       </Card>
